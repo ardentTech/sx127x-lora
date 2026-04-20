@@ -10,10 +10,6 @@ pub(crate) fn fei_ppm(hz: f64, frf: u32) -> f64 {
     hz * (10u32.pow(6) / frf) as f64
 }
 
-pub(crate) fn frf(hz: u32, fstep: f32) -> u32 {
-    ((hz as f32) / fstep) as u32
-}
-
 pub(crate) fn ocp_trim(imax: u8) -> u8 {
     if imax < 130 {
         (imax - 45) / 5
@@ -61,12 +57,6 @@ mod tests {
         let fei_hz = fei_hz(8i32, 16f32);
         let fei_ppm = fei_ppm(fei_hz, 32u32);
         assert_relative_eq!(fei_ppm, 4000.0, epsilon=1e-3);
-    }
-
-    #[test]
-    fn frf_ok() {
-        let res = frf(434_000_000, (32_000_000f32) / (2u32.pow(19) as f32));
-        assert_eq!(res, 0x6c8000);
     }
 
     #[test]

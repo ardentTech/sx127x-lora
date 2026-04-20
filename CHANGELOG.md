@@ -35,3 +35,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `optimize_rx_response` method for errata 2.3
 - DIO2..DIO5 signals and setters
 - `half_duplex` feature flag
+- remove `frf` calculation and move to `sx127x-common`
+- pub re-export `Sx127xError`

@@ -2,8 +2,8 @@
 use defmt::debug;
 
 use embedded_hal_async::spi::SpiDevice;
-use sx127x_common::error::Sx127xError;
-use sx127x_common::{FSTEP, FXOSC_HZ};
+pub use sx127x_common::error::Sx127xError;
+use sx127x_common::FSTEP;
 use sx127x_common::bits::{get_bits, set_bits};
 use sx127x_common::spi::Sx127xSpi;
 use crate::registers::*;
@@ -338,7 +338,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     ///
     /// See: datasheet section 4.1.4
     pub async fn set_frequency(&mut self, hz: u32) -> Result<(), Sx127xError<SPI::Error>> {
-        let frf = calculate::frf(hz, FSTEP);
+        let frf = sx127x_common::calculate::frf(hz, FSTEP);
         self.spi.write(FRF_MSB, (frf >> 16) as u8).await?;
         self.spi.write(FRF_MID, (frf >> 8) as u8).await?;
         self.spi.write(FRF_LSB, frf as u8).await?;

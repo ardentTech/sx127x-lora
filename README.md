@@ -16,6 +16,7 @@
 ### TODO
 
 - [ ] LowFrequencyModeOn bit of RegOpMode
+- [ ] frequency hopping example
 
 ### Examples
 
