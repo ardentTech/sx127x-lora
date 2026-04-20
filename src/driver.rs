@@ -94,6 +94,14 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         Ok(calculate::data_rate(symbol_rate, spreading_factor, coding_rate))
     }
 
+    /// Gets the device mode.
+    ///
+    /// See: datasheet table 16
+    pub async fn device_mode(&mut self) -> Result<DeviceMode, Sx127xError<SPI::Error>> {
+        let op_mode = self.spi.read(OP_MODE).await?;
+        Ok(DeviceMode::from(get_bits(op_mode, OP_MODE_MODE_MASK, 0)))
+    }
+
     /// Gets the carrier frequency in Hz.
     ///
     /// See: datasheet section 4.1.4
@@ -583,11 +591,6 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     }
 
     // PRIVATE -------------------------------------------------------------------------------------
-
-    async fn device_mode(&mut self) -> Result<DeviceMode, Sx127xError<SPI::Error>> {
-        let op_mode = self.spi.read(OP_MODE).await?;
-        Ok(DeviceMode::from(get_bits(op_mode, OP_MODE_MODE_MASK, 0)))
-    }
 
     async fn set_dio_mapping(&mut self, register: u8, value: u8, mask: u8, left_shift: u8) -> Result<(), Sx127xError<SPI::Error>> {
         let mut byte = self.spi.read(register).await?;

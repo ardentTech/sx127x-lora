@@ -37,3 +37,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `half_duplex` feature flag
 - remove `frf` calculation and move to `sx127x-common`
 - pub re-export `Sx127xError`
+- make `device_mode` getter public
