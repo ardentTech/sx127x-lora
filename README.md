@@ -20,7 +20,7 @@
 
 ### Examples
 
-* [LoRa RP235x async](https://github.com/ardentTech/sx127x-lora/tree/main/examples/rp235x/lora/async)
+* [LoRa RP235x async](https://github.com/ardentTech/sx127x-lora/tree/main/examples/rp235x/async)
 
 ### Resources
 
