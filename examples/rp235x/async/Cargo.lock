@@ -1152,7 +1152,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sx127x-lora"
+name = "sx127xlora"
 version = "0.1.0"
 dependencies = [
  "defmt",
@@ -1162,7 +1162,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sx127x-lora-rp235x-async"
+name = "sx127xlora-rp235x-async"
 version = "0.1.0"
 dependencies = [
  "cortex-m-rt",
@@ -1174,7 +1174,7 @@ dependencies = [
  "embassy-sync",
  "embassy-time",
  "panic-probe",
- "sx127x-lora",
+ "sx127xlora",
 ]
 
 [[package]]

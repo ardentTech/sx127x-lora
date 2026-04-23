@@ -1,5 +1,5 @@
 [package]
-name = "sx127x-lora"
+name = "sx127xlora"
 version = "0.1.0"
 edition = "2024"
 authors = ["Jonathan D. Baker <jonathan@ardent.tech>"]
