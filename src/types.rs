@@ -260,6 +260,15 @@ pub enum PARamp {
     Us10 = 0xf,
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub enum PLLBandwidth {
+    Bw75kHz = 0x0,
+    Bw150kHz = 0x1,
+    Bw225kHz = 0x2,
+    #[default]
+    Bw300kHz = 0x3,
+}
+
 #[derive(Clone, Copy, PartialEq)]
 pub enum RxStatus {
     ModemClear,

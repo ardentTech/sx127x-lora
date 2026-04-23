@@ -1143,9 +1143,9 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 
 [[package]]
 name = "sx127x-common"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbd9b941fcc0b535ed0a983a9b05f1105d0255aaec0460e6e7fa6cbb41d5f634"
+checksum = "33e524f2095530153864c6b58608c21da04b2db8d47db540a2f8a8bb5b986253"
 dependencies = [
  "embedded-hal-async",
  "maybe-async",

@@ -54,6 +54,7 @@ pub const MODEM_CONFIG_2_TX_CONTINUOUS_MODE_MASK: u8 = 0x08;
 pub const MODEM_CONFIG_2_RX_PAYLOAD_CRC_ON_MASK: u8 = 0x04;
 pub const MODEM_CONFIG_2_SYMB_TIMEOUT_MASK: u8 = 0x03;
 
+// -------------------------------------------------------------------------------------------------
 pub const SYMB_TIMEOUT_LSB: u8 = 0x1f;
 pub const PREAMBLE_MSB: u8 = 0x20;
 pub const PREAMBLE_LSB: u8 = 0x21;

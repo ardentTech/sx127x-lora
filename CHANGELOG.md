@@ -9,9 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.1] - 2026-04-23
 
+### Added
+
+- `set_pll_bandwidth` method
+
 ### Fixed
 
 - crate import errors in examples after unexpected rename for 0.1.0
+
+### Removed
+
+- `DEFAULT_FREQUENCY_HZ` constant
 
 ## [0.1.0] - 2026-04-22
 

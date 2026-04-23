@@ -3,14 +3,13 @@ use defmt::debug;
 
 use embedded_hal_async::spi::SpiDevice;
 pub use sx127x_common::error::Sx127xError;
-use sx127x_common::FSTEP;
+use sx127x_common::{DEFAULT_FREQUENCY_HZ, FSTEP};
 use sx127x_common::bits::{get_bits, set_bits};
 use sx127x_common::spi::Sx127xSpi;
 use crate::registers::*;
 use crate::types::*;
 use crate::calculate;
 
-const DEFAULT_FREQUENCY_HZ: u32 = 434_000_000;
 #[cfg(feature = "half_duplex")]
 const PAYLOAD_SIZE: usize = 256;
 #[cfg(not(feature = "half_duplex"))]
@@ -466,6 +465,15 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
 
         self.spi.write(PA_DAC, 0x84).await?;
         self.set_ocp(false, 0).await
+    }
+
+    /// Sets the PLL bandwidth.
+    ///
+    /// See: datasheet section 3
+    pub async fn set_pll_bandwidth(&mut self, bandwidth: PLLBandwidth) -> Result<(), Sx127xError<SPI::Error>> {
+        let mut byte = self.spi.read(PLL).await?;
+        set_bits(&mut byte, bandwidth as u8, PLL_PLL_BANDWIDTH, 6);
+        self.spi.write(PLL, byte).await
     }
 
     /// Sets the preamble length, minus 4 symbols of fixed overhead. A `length` of 6, which is the
