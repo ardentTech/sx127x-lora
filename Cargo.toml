@@ -1,6 +1,6 @@
 [package]
 name = "sx127xlora"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 authors = ["Jonathan D. Baker <jonathan@ardent.tech>"]
 description = "A no-std driver for the LoRa modem on Semtech Sx127x chips."
