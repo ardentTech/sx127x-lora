@@ -9,6 +9,7 @@ use sx127x_common::spi::Sx127xSpi;
 use crate::registers::*;
 use crate::types::*;
 use crate::calculate;
+use crate::validate::{validate_pa_boost, validate_pa_rfo};
 
 #[cfg(feature = "half_duplex")]
 const PAYLOAD_SIZE: usize = 256;
@@ -425,7 +426,9 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     ///
     /// * `power`: 2 <= a <= 17 for continuous operation, or 20 for duty-cycled operation
     pub async fn set_pa_boost(&mut self, power: u8) -> Result<(), Sx127xError<SPI::Error>> {
-        assert!(power == 20 || (power >= 2 && power <= 17));
+        if !validate_pa_boost(power) {
+            return Err(Sx127xError::InvalidInput)
+        }
 
         let mut byte = self.spi.read(PA_CONFIG).await?;
         set_bits(&mut byte, 1, PA_CONFIG_PA_SELECT_MASK, 7);
@@ -451,7 +454,9 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     ///
     /// * `power`: -4 <= a <= 15
     pub async fn set_pa_rfo(&mut self, power: i8) -> Result<(), Sx127xError<SPI::Error>> {
-        assert!(power >= -4 && power <= 15);
+        if !validate_pa_rfo(power) {
+            return Err(Sx127xError::InvalidInput)
+        }
 
         let mut byte = self.spi.read(PA_CONFIG).await?;
         set_bits(&mut byte, 0, PA_CONFIG_PA_SELECT_MASK, 7);
