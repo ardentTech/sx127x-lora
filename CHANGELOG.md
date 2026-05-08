@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `set_pll_bandwidth` method
+- `invert_iq` getter
+
+### Changed
+
+- `set_invert_iq` parameter is `InvertIQ` struct instead of bools
 
 ### Fixed
 

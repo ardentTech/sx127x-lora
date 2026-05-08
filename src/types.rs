@@ -1,4 +1,6 @@
+use sx127x_common::bits::get_bits;
 use crate::registers;
+use crate::registers::{INVERT_IQ_RX_MASK, INVERT_IQ_TX_MASK};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum Bandwidth {
@@ -203,9 +205,17 @@ impl Interrupt {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct InvertIQConfig {
+pub struct InvertIQ {
     pub rx_path: bool,
     pub tx_path: bool,
+}
+impl From<u8> for InvertIQ {
+    fn from(value: u8) -> Self {
+        Self {
+            rx_path: get_bits(value, INVERT_IQ_RX_MASK, 6) == 1,
+            tx_path: get_bits(value, INVERT_IQ_TX_MASK, 0) == 1,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]

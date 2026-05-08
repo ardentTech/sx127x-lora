@@ -370,17 +370,24 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         self.spi.write(HOP_PERIOD, period).await
     }
 
-    /// Sets the invert IQ config for the rx_path and tx_path.
+    /// Sets the invert IQ configuration.
     ///
     /// See: datasheet section 2.1.3.8
-    pub async fn set_invert_iq(&mut self, rx_path: bool, tx_path: bool) -> Result<(), Sx127xError<SPI::Error>> {
+    pub async fn set_invert_iq(&mut self, invert_iq: InvertIQ) -> Result<(), Sx127xError<SPI::Error>> {
         let mut byte = self.spi.read(INVERT_IQ).await?;
-        set_bits(&mut byte, rx_path as u8, INVERT_IQ_RX_MASK, 6);
-        set_bits(&mut byte, tx_path as u8, INVERT_IQ_TX_MASK, 0);
+        set_bits(&mut byte, invert_iq.rx_path as u8, INVERT_IQ_RX_MASK, 6);
+        set_bits(&mut byte, invert_iq.tx_path as u8, INVERT_IQ_TX_MASK, 0);
 
-        self.spi.write(INVERT_IQ_2, if rx_path || tx_path { 0x19 } else { 0x1d }).await?;
-
+        // optimize
+        self.spi.write(INVERT_IQ_2, if invert_iq.rx_path || invert_iq.tx_path { 0x19 } else { 0x1d }).await?;
         self.spi.write(INVERT_IQ, byte).await
+    }
+
+    /// Gets the invert IQ configuration.
+    ///
+    /// See: datasheet section 2.1.3.8
+    pub async fn invert_iq(&mut self) -> Result<InvertIQ, Sx127xError<SPI::Error>> {
+        Ok(InvertIQ::from(self.spi.read(INVERT_IQ).await?))
     }
 
     /// Sets the gain for the low noise receiver amplifier (LNA).
