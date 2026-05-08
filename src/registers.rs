@@ -2,9 +2,11 @@ pub use sx127x_common::registers::*;
 
 // RegOpMode ---------------------------------------------------------------------------------------
 pub const OP_MODE_LONG_RANGE_MODE_MASK: u8 = 0x80;
+pub const OP_MODE_LONG_RANGE_MODE_OFFSET: u8 = 0x7;
 pub const OP_MODE_ACCESS_SHARED_REG_MASK: u8 = 0x40;
 pub const OP_MODE_LOW_FREQUENCY_MODE_ON_MASK: u8 = 0x08;
 pub const OP_MODE_MODE_MASK: u8 = 0x07;
+pub const OP_MODE_MODE_OFFSET: u8 = 0x0;
 
 // -------------------------------------------------------------------------------------------------
 pub const FIFO_ADDR_PTR: u8 = 0x0d;
@@ -30,7 +32,13 @@ pub const RX_HEADER_CNT_VALUE_MSB: u8 = 0x14;
 pub const RX_HEADER_CNT_VALUE_LSB: u8 = 0x15;
 pub const RX_PACKET_CNT_VALUE_MSB: u8 = 0x16;
 pub const RX_PACKET_CNT_VALUE_LSB: u8 = 0x17;
+
+// RegModemStat ------------------------------------------------------------------------------------
 pub const MODEM_STAT: u8 = 0x18;
+pub const MODEM_STAT_RX_CODING_RATE_MASK: u8 = 0xe0;
+pub const MODEM_STAT_RX_CODING_RATE_OFFSET: u8 = 0x5;
+
+// -------------------------------------------------------------------------------------------------
 pub const PKT_SNR_VALUE: u8 = 0x19;
 pub const PKT_RSSI_VALUE: u8 = 0x1a;
 pub const RSSI_VALUE: u8 = 0x1b;

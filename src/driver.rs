@@ -99,7 +99,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// See: datasheet table 16
     pub async fn device_mode(&mut self) -> Result<DeviceMode, Sx127xError<SPI::Error>> {
         let op_mode = self.spi.read(OP_MODE).await?;
-        Ok(DeviceMode::from(get_bits(op_mode, OP_MODE_MODE_MASK, 0)))
+        Ok(DeviceMode::from(get_bits(op_mode, OP_MODE_MODE_MASK, OP_MODE_MODE_OFFSET)))
     }
 
     /// Gets the carrier frequency in Hz.
@@ -304,6 +304,11 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         self.spi.read(RSSI_WIDEBAND).await
     }
 
+    /// Gets the coding rate of the last header received.
+    pub async fn rx_coding_rate(&mut self) -> Result<CodingRate, Sx127xError<SPI::Error>> {
+        Ok(CodingRate::from(get_bits(self.spi.read(MODEM_STAT).await?, MODEM_STAT_RX_CODING_RATE_MASK, MODEM_STAT_RX_CODING_RATE_OFFSET)))
+    }
+
     /// Sets the bandwidth and then optimizes the sensitivity of the modem.
     ///
     /// See: datasheet section 4.1.1.4
@@ -337,7 +342,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// See: datasheet table 16
     pub async fn set_device_mode(&mut self, device_mode: DeviceMode) -> Result<(), Sx127xError<SPI::Error>> {
         let mut byte = self.spi.read(OP_MODE).await?;
-        set_bits(&mut byte, device_mode as u8, OP_MODE_MODE_MASK, 0);
+        set_bits(&mut byte, device_mode as u8, OP_MODE_MODE_MASK, OP_MODE_MODE_OFFSET);
         self.spi.write(OP_MODE, byte).await
     }
 
@@ -624,7 +629,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         self.set_device_mode(DeviceMode::SLEEP).await?;
 
         let mut op_mode = self.spi.read(OP_MODE).await?;
-        set_bits(&mut op_mode, on as u8, OP_MODE_LONG_RANGE_MODE_MASK, 7);
+        set_bits(&mut op_mode, on as u8, OP_MODE_LONG_RANGE_MODE_MASK, OP_MODE_LONG_RANGE_MODE_OFFSET);
         self.spi.write(OP_MODE, op_mode).await?;
 
         self.set_device_mode(DeviceMode::STDBY).await

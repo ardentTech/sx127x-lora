@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `set_pll_bandwidth` method
 - `invert_iq` getter
+- `rx_coding_rate` getter
 
 ### Changed
 
