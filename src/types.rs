@@ -1,6 +1,6 @@
 use sx127x_common::bits::get_bits;
+use sx127x_common::error::Sx127xError;
 use crate::registers;
-use crate::registers::{INVERT_IQ_RX_MASK, INVERT_IQ_TX_MASK};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum Bandwidth {
@@ -212,8 +212,8 @@ pub struct InvertIQ {
 impl From<u8> for InvertIQ {
     fn from(value: u8) -> Self {
         Self {
-            rx_path: get_bits(value, INVERT_IQ_RX_MASK, 6) == 1,
-            tx_path: get_bits(value, INVERT_IQ_TX_MASK, 0) == 1,
+            rx_path: get_bits(value, registers::INVERT_IQ_RX_MASK, 6) == 1,
+            tx_path: get_bits(value, registers::INVERT_IQ_TX_MASK, 0) == 1,
         }
     }
 }
@@ -229,22 +229,25 @@ pub enum LnaGain {
     G6 = 0x6
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum ModemStatus {
-    SignalDetected = 0x0,
-    SignalSynchronized = 0x1,
-    RxOnGoing = 0x4,
-    HeaderInfoValid = 0x8,
-    ModemClear = 0x16,
+    SignalDetected,
+    SignalSynchronized,
+    RxOnGoing,
+    HeaderInfoValid,
+    #[default]
+    ModemClear,
 }
-impl From<u8> for ModemStatus {
-    fn from(value: u8) -> Self {
+impl TryFrom<u8> for ModemStatus {
+    type Error = ();
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
-            0x0 => ModemStatus::SignalDetected,
-            0x1 => ModemStatus::SignalSynchronized,
-            0x4 => ModemStatus::RxOnGoing,
-            0x8 => ModemStatus::HeaderInfoValid,
-            _ => ModemStatus::ModemClear,
+            registers::MODEM_STAT_MODEM_STATUS_SIGNAL_DETECTED => Ok(ModemStatus::SignalDetected),
+            registers::MODEM_STAT_MODEM_STATUS_SIGNAL_SYNCHRONIZED => Ok(ModemStatus::SignalSynchronized),
+            registers::MODEM_STAT_MODEM_STATUS_RX_ONGOING_MASK => Ok(ModemStatus::RxOnGoing),
+            registers::MODEM_STAT_MODEM_STATUS_HEADER_INFO_VALID_MASK => Ok(ModemStatus::HeaderInfoValid),
+            registers::MODEM_STAT_MODEM_STATUS_MODEM_CLEAR_MASK => Ok(ModemStatus::ModemClear),
+            _ => Err(()),
         }
     }
 }

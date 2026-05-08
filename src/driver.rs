@@ -5,6 +5,7 @@ use embedded_hal_async::spi::SpiDevice;
 pub use sx127x_common::error::Sx127xError;
 use sx127x_common::{DEFAULT_FREQUENCY_HZ, FSTEP};
 use sx127x_common::bits::{get_bits, set_bits};
+use sx127x_common::error::Sx127xError::InvalidState;
 use sx127x_common::spi::Sx127xSpi;
 use crate::registers::*;
 use crate::types::*;
@@ -209,7 +210,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     ///
     /// See: datasheet section 2.0.2
     pub async fn modem_status(&mut self) -> Result<ModemStatus, Sx127xError<SPI::Error>> {
-        Ok(ModemStatus::from(self.spi.read(MODEM_STAT).await?))
+        Ok(ModemStatus::try_from(self.spi.read(MODEM_STAT).await? & MODEM_STAT_MODEM_STATUS_MASK).map_err(|_| InvalidState)?)
     }
 
     /// Optimize receiver intermediate frequency to mitigate spurious reception of LoRa signal.

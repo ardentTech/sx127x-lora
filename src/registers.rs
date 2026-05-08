@@ -37,6 +37,12 @@ pub const RX_PACKET_CNT_VALUE_LSB: u8 = 0x17;
 pub const MODEM_STAT: u8 = 0x18;
 pub const MODEM_STAT_RX_CODING_RATE_MASK: u8 = 0xe0;
 pub const MODEM_STAT_RX_CODING_RATE_OFFSET: u8 = 0x5;
+pub const MODEM_STAT_MODEM_STATUS_MASK: u8 = 0x1f;
+pub const MODEM_STAT_MODEM_STATUS_MODEM_CLEAR_MASK: u8 = 0x10;
+pub const MODEM_STAT_MODEM_STATUS_HEADER_INFO_VALID_MASK: u8 = 0x08;
+pub const MODEM_STAT_MODEM_STATUS_RX_ONGOING_MASK: u8 = 0x04;
+pub const MODEM_STAT_MODEM_STATUS_SIGNAL_SYNCHRONIZED: u8 = 0x02;
+pub const MODEM_STAT_MODEM_STATUS_SIGNAL_DETECTED: u8 = 0x01;
 
 // -------------------------------------------------------------------------------------------------
 pub const PKT_SNR_VALUE: u8 = 0x19;

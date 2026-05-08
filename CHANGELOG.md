@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - crate import errors in examples after unexpected rename for 0.1.0
+- `modem_status` getter bug that didn't mask off last rx coding rate before conversion to enum
 
 ### Removed
 
