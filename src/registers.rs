@@ -51,10 +51,12 @@ pub const RSSI_VALUE: u8 = 0x1b;
 
 // RegHopChannel -----------------------------------------------------------------------------------
 pub const HOP_CHANNEL: u8 = 0x1c;
-//pub const HOP_CHANNEL_PLL_TIMEOUT_MASK: u8 = 0x80;
+pub const HOP_CHANNEL_PLL_TIMEOUT_MASK: u8 = 0x80;
+pub const HOP_CHANNEL_PLL_TIMEOUT_OFFSET: u8 = 0x7;
 pub const HOP_CHANNEL_CRC_ON_PAYLOAD_MASK: u8 = 0x40;
 pub const HOP_CHANNEL_CRC_ON_PAYLOAD_OFFSET: u8 = 0x6;
-//pub const HOP_CHANNEL_FHSS_PRESENT_CHANNEL_MASK: u8 = 0x3f;
+pub const HOP_CHANNEL_FHSS_PRESENT_CHANNEL_MASK: u8 = 0x3f;
+pub const HOP_CHANNEL_FHSS_PRESENT_CHANNEL_OFFSET: u8 = 0x0;
 
 // RegModemConfig1 ---------------------------------------------------------------------------------
 pub const MODEM_CONFIG_1: u8 = 0x1d;

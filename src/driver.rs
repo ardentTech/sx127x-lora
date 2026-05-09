@@ -134,6 +134,13 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         Ok(calculate::fei_ppm(hz, frf))
     }
 
+    /// Gets the FHSS start channel.
+    ///
+    /// See: datasheet section 4.1.1.6
+    pub async fn hop_channel(&mut self) -> Result<HopChannel, Sx127xError<SPI::Error>> {
+        Ok(HopChannel::from(self.spi.read(HOP_CHANNEL).await?))
+    }
+
     /// Gets the RX data buffer pointer.
     ///
     /// See: datasheet pages 41-42
@@ -150,6 +157,18 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
             get_bits(byte, OCP_ON_MASK, OCP_ON_OFFSET) == 1,
             calculate::ocp_imax(get_bits(byte, OCP_TRIM_MASK, OCP_TRIM_OFFSET))
         ))
+    }
+
+    /// Optimize receiver intermediate frequency to mitigate spurious reception of LoRa signal.
+    ///
+    /// See: errata section 2.3
+    pub async fn optimize_rx_response(&mut self) -> Result<(), Sx127xError<SPI::Error>> {
+        self.set_device_mode(DeviceMode::STDBY).await?;
+
+        let bandwidth = self.bandwidth().await?;
+        self.optimize_rx_response_frf_offset(bandwidth).await?;
+        self.optimize_rx_response_detect_optimize(bandwidth).await?;
+        self.optimize_rx_response_if(bandwidth).await
     }
 
     /// Gets the rise/fall time of the power amplifier (PA).
@@ -235,18 +254,6 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// See: datasheet section 2.0.2
     pub async fn modem_status(&mut self) -> Result<ModemStatus, Sx127xError<SPI::Error>> {
         Ok(ModemStatus::try_from(self.spi.read(MODEM_STAT).await? & MODEM_STAT_MODEM_STATUS_MASK).map_err(|_| InvalidState)?)
-    }
-
-    /// Optimize receiver intermediate frequency to mitigate spurious reception of LoRa signal.
-    ///
-    /// See: errata section 2.3
-    pub async fn optimize_rx_response(&mut self) -> Result<(), Sx127xError<SPI::Error>> {
-        self.set_device_mode(DeviceMode::STDBY).await?;
-
-        let bandwidth = self.bandwidth().await?;
-        self.optimize_rx_response_frf_offset(bandwidth).await?;
-        self.optimize_rx_response_detect_optimize(bandwidth).await?;
-        self.optimize_rx_response_if(bandwidth).await
     }
 
     /// Gets N bytes from the FIFO buffer, depending upon the `half_duplex` feature flag.

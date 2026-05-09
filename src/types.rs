@@ -1,6 +1,7 @@
 use sx127x_common::bits::get_bits;
 use sx127x_common::registers::{LNA_BOOST_HF_MASK, LNA_BOOST_HF_OFFSET, LNA_GAIN_MASK, LNA_GAIN_OFFSET};
 use crate::{calculate, registers};
+use crate::registers::{HOP_CHANNEL_CRC_ON_PAYLOAD_MASK, HOP_CHANNEL_CRC_ON_PAYLOAD_OFFSET, HOP_CHANNEL_FHSS_PRESENT_CHANNEL_MASK, HOP_CHANNEL_FHSS_PRESENT_CHANNEL_OFFSET, HOP_CHANNEL_PLL_TIMEOUT_MASK, HOP_CHANNEL_PLL_TIMEOUT_OFFSET};
 use crate::types::PARamp::*;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -170,6 +171,22 @@ impl From<u8> for HeaderMode {
         match value {
             0x0 => HeaderMode::Explicit,
             _ => HeaderMode::Implicit,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct HopChannel {
+    pll_timeout: bool,
+    crc_on_payload: bool,
+    fhss_present_channel: u8
+}
+impl From<u8> for HopChannel {
+    fn from(value: u8) -> Self {
+        Self {
+            pll_timeout: get_bits(value, HOP_CHANNEL_PLL_TIMEOUT_MASK, HOP_CHANNEL_PLL_TIMEOUT_OFFSET) == 1,
+            crc_on_payload: get_bits(value, HOP_CHANNEL_CRC_ON_PAYLOAD_MASK, HOP_CHANNEL_CRC_ON_PAYLOAD_OFFSET) == 1,
+            fhss_present_channel: get_bits(value, HOP_CHANNEL_FHSS_PRESENT_CHANNEL_MASK, HOP_CHANNEL_FHSS_PRESENT_CHANNEL_OFFSET)
         }
     }
 }

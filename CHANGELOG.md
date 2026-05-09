@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `pa_ramp` getter
 - `Ocp` struct, `ocp` getter
 - `Lna` struct and `lna` getter
+- `hop_channel` getter
 
 ### Changed
 
