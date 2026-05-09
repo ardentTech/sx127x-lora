@@ -3,8 +3,8 @@ pub use sx127x_common::registers::*;
 // RegOpMode ---------------------------------------------------------------------------------------
 pub const OP_MODE_LONG_RANGE_MODE_MASK: u8 = 0x80;
 pub const OP_MODE_LONG_RANGE_MODE_OFFSET: u8 = 0x7;
-pub const OP_MODE_ACCESS_SHARED_REG_MASK: u8 = 0x40;
-pub const OP_MODE_LOW_FREQUENCY_MODE_ON_MASK: u8 = 0x08;
+//pub const OP_MODE_ACCESS_SHARED_REG_MASK: u8 = 0x40;
+//pub const OP_MODE_LOW_FREQUENCY_MODE_ON_MASK: u8 = 0x08;
 pub const OP_MODE_MODE_MASK: u8 = 0x07;
 pub const OP_MODE_MODE_OFFSET: u8 = 0x0;
 
@@ -51,19 +51,24 @@ pub const RSSI_VALUE: u8 = 0x1b;
 
 // RegHopChannel -----------------------------------------------------------------------------------
 pub const HOP_CHANNEL: u8 = 0x1c;
-pub const HOP_CHANNEL_PLL_TIMEOUT_MASK: u8 = 0x80;
+//pub const HOP_CHANNEL_PLL_TIMEOUT_MASK: u8 = 0x80;
 pub const HOP_CHANNEL_CRC_ON_PAYLOAD_MASK: u8 = 0x40;
-pub const HOP_CHANNEL_FHSS_PRESENT_CHANNEL_MASK: u8 = 0x3f;
+pub const HOP_CHANNEL_CRC_ON_PAYLOAD_OFFSET: u8 = 0x6;
+//pub const HOP_CHANNEL_FHSS_PRESENT_CHANNEL_MASK: u8 = 0x3f;
 
 // RegModemConfig1 ---------------------------------------------------------------------------------
 pub const MODEM_CONFIG_1: u8 = 0x1d;
 pub const MODEM_CONFIG_1_BW_MASK: u8 = 0xf0;
+pub const MODEM_CONFIG_1_BW_OFFSET: u8 = 0x4;
 pub const MODEM_CONFIG_1_CODING_RATE_MASK: u8 = 0x0e;
+pub const MODEM_CONFIG_1_CODING_RATE_OFFSET: u8 = 0x1;
 pub const MODEM_CONFIG_1_IMPLICIT_HEADER_MODE_ON_MASK: u8 = 0x01;
+pub const MODEM_CONFIG_1_IMPLICIT_HEADER_MODE_ON_OFFSET: u8 = 0x0;
 
 // RegModemConfig2 ---------------------------------------------------------------------------------
 pub const MODEM_CONFIG_2: u8 = 0x1e;
 pub const MODEM_CONFIG_2_SPREADING_FACTOR_MASK: u8 = 0xf0;
+pub const MODEM_CONFIG_2_SPREADING_FACTOR_OFFSET: u8 = 0x4;
 pub const MODEM_CONFIG_2_TX_CONTINUOUS_MODE_MASK: u8 = 0x08;
 pub const MODEM_CONFIG_2_RX_PAYLOAD_CRC_ON_MASK: u8 = 0x04;
 pub const MODEM_CONFIG_2_SYMB_TIMEOUT_MASK: u8 = 0x03;
@@ -91,18 +96,36 @@ pub const IF_FREQ_1: u8 = 0x30;
 
 // RegDetectOptimize -------------------------------------------------------------------------------
 pub const DETECT_OPTIMIZE: u8 = 0x31;
+pub const DETECT_OPTIMIZE_AUTOMATIC_IF_ON_MASK: u8 = 0x80;
+pub const DETECT_OPTIMIZE_AUTOMATIC_IF_ON_OFFSET: u8 = 0x07;
 pub const DETECT_OPTIMIZE_DETECTION_OPTIMIZE_MASK: u8 = 0x07;
+pub const DETECT_OPTIMIZE_DETECTION_OPTIMIZE_SF6: u8 = 0x05;
+pub const DETECT_OPTIMIZE_DETECTION_OPTIMIZE_SF7_TO_SF12: u8 = 0x03;
 
 // RegInvertIQ -------------------------------------------------------------------------------------
 pub const INVERT_IQ: u8 = 0x33;
 pub const INVERT_IQ_RX_MASK: u8 = 0x40;
+pub const INVERT_IQ_RX_OFFSET: u8 = 0x6;
 pub const INVERT_IQ_TX_MASK: u8 = 0x1;
+pub const INVERT_IQ_TX_OFFSET: u8 = 0x0;
 
 // -------------------------------------------------------------------------------------------------
 // RegImageCal: this is a FSK/OOK reg needed for calibration (hence only pub(crate))
 pub(crate) const IMAGE_CAL: u8 = 0x3b;
+pub(crate) const IMAGE_CAL_IMAGE_CAL_START_MASK: u8 = 0x40;
+
 pub const HIGH_BW_OPTIMIZE_1: u8 = 0x36;
+
+// RegDetectionThreshold ---------------------------------------------------------------------------
 pub const DETECTION_THRESHOLD: u8 = 0x37;
+pub const DETECTION_THRESHOLD_SF6: u8 = 0x0c;
+pub const DETECTION_THRESHOLD_SF7_TO_SF12: u8 = 0x0a;
+
+// -------------------------------------------------------------------------------------------------
 pub const SYNC_WORD: u8 = 0x39;
 pub const HIGH_BW_OPTIMIZE_2: u8 = 0x3a;
+
+// RegInvertIQ2 ------------------------------------------------------------------------------------
 pub const INVERT_IQ_2: u8 = 0x3b;
+pub const INVERT_IQ_2_OFF: u8 = 0x1d;
+pub const INVERT_IQ_2_ON: u8 = 0x19;

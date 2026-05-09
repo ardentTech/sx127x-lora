@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `DEFAULT_FREQUENCY_HZ` constant
 - `assert!` from driver
+- unused `RxStatus` enum
 
 ## [0.1.0] - 2026-04-22
 

@@ -59,8 +59,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     ///
     /// See: datasheet section 4.1.1.4
     pub async fn bandwidth(&mut self) -> Result<Bandwidth, Sx127xError<SPI::Error>> {
-        let modem_config_1 = self.spi.read(MODEM_CONFIG_1).await?;
-        Ok(Bandwidth::from((modem_config_1 & MODEM_CONFIG_1_BW_MASK) >> 4))
+        Ok(Bandwidth::from((self.spi.read(MODEM_CONFIG_1).await? & MODEM_CONFIG_1_BW_MASK) >> MODEM_CONFIG_1_BW_OFFSET))
     }
 
     /// Triggers the IQ and RSSI calibration when set in Standby mode. Takes ~10ms.
@@ -69,7 +68,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     pub async fn calibrate(&mut self) -> Result<(), Sx127xError<SPI::Error>> {
         self.set_device_mode(DeviceMode::STDBY).await?;
         let mut image_cal = self.spi.read(IMAGE_CAL).await?;
-        image_cal |= 0x40;
+        image_cal |= IMAGE_CAL_IMAGE_CAL_START_MASK;
         self.spi.write(IMAGE_CAL, image_cal).await
     }
 
@@ -84,7 +83,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// See: datasheet section 4.1.1.3
     pub async fn coding_rate(&mut self) -> Result<CodingRate, Sx127xError<SPI::Error>> {
         let byte = self.spi.read(MODEM_CONFIG_1).await?;
-        Ok(CodingRate::from(get_bits(byte, MODEM_CONFIG_1_CODING_RATE_MASK, 1)))
+        Ok(CodingRate::from(get_bits(byte, MODEM_CONFIG_1_CODING_RATE_MASK, MODEM_CONFIG_1_CODING_RATE_OFFSET)))
     }
 
     /// Calculates the data rate in bits/s.
@@ -146,42 +145,42 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     ///
     /// See: datasheet table 18
     pub async fn set_dio0(&mut self, signal: Dio0Signal) -> Result<(), Sx127xError<SPI::Error>> {
-        self.set_dio_mapping(DIO_MAPPING_1, signal as u8, DIO_MAPPING_1_DIO0_MASK, DIO_MAPPING_1_DIO0_SHIFT).await
+        self.set_dio_mapping(DIO_MAPPING_1, signal as u8, DIO_MAPPING_1_DIO0_MASK, DIO_MAPPING_1_DIO0_OFFSET).await
     }
 
     /// Sets the DIO1 pin signal source.
     ///
     /// See: datasheet table 18
     pub async fn set_dio1(&mut self, signal: Dio1Signal) -> Result<(), Sx127xError<SPI::Error>> {
-        self.set_dio_mapping(DIO_MAPPING_1, signal as u8, DIO_MAPPING_1_DIO1_MASK, DIO_MAPPING_1_DIO1_SHIFT).await
+        self.set_dio_mapping(DIO_MAPPING_1, signal as u8, DIO_MAPPING_1_DIO1_MASK, DIO_MAPPING_1_DIO1_OFFSET).await
     }
 
     /// Sets the DIO2 pin signal source.
     ///
     /// See: datasheet table 18
     pub async fn set_dio2(&mut self, signal: Dio2Signal) -> Result<(), Sx127xError<SPI::Error>> {
-        self.set_dio_mapping(DIO_MAPPING_1, signal as u8, DIO_MAPPING_1_DIO2_MASK, DIO_MAPPING_1_DIO2_SHIFT).await
+        self.set_dio_mapping(DIO_MAPPING_1, signal as u8, DIO_MAPPING_1_DIO2_MASK, DIO_MAPPING_1_DIO2_OFFSET).await
     }
 
     /// Sets the DIO3 pin signal source.
     ///
     /// See: datasheet table 18
     pub async fn set_dio3(&mut self, signal: Dio3Signal) -> Result<(), Sx127xError<SPI::Error>> {
-        self.set_dio_mapping(DIO_MAPPING_1, signal as u8, DIO_MAPPING_1_DIO3_MASK, DIO_MAPPING_1_DIO3_SHIFT).await
+        self.set_dio_mapping(DIO_MAPPING_1, signal as u8, DIO_MAPPING_1_DIO3_MASK, DIO_MAPPING_1_DIO3_OFFSET).await
     }
 
     /// Sets the DIO4 pin signal source.
     ///
     /// See: datasheet table 18
     pub async fn set_dio4(&mut self, signal: Dio4Signal) -> Result<(), Sx127xError<SPI::Error>> {
-        self.set_dio_mapping(DIO_MAPPING_2, signal as u8, DIO_MAPPING_2_DIO4_MASK, DIO_MAPPING_2_DIO4_SHIFT).await
+        self.set_dio_mapping(DIO_MAPPING_2, signal as u8, DIO_MAPPING_2_DIO4_MASK, DIO_MAPPING_2_DIO4_OFFSET).await
     }
 
     /// Sets the DIO5 pin signal source.
     ///
     /// See: datasheet table 18
     pub async fn set_dio5(&mut self, signal: Dio5Signal) -> Result<(), Sx127xError<SPI::Error>> {
-        self.set_dio_mapping(DIO_MAPPING_2, signal as u8, DIO_MAPPING_2_DIO5_MASK, DIO_MAPPING_2_DIO5_SHIFT).await
+        self.set_dio_mapping(DIO_MAPPING_2, signal as u8, DIO_MAPPING_2_DIO5_MASK, DIO_MAPPING_2_DIO5_OFFSET).await
     }
 
     /// Gets received signal strength indicator (RSSI) of last packet received.
@@ -230,7 +229,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// See: datasheet figure 10
     pub async fn read_rx_data(&mut self) -> Result<[u8; PAYLOAD_SIZE], Sx127xError<SPI::Error>> {
         let reg_hop_channel = self.spi.read(HOP_CHANNEL).await?;
-        let crc_on_payload = get_bits(reg_hop_channel, HOP_CHANNEL_CRC_ON_PAYLOAD_MASK, 6) == 1;
+        let crc_on_payload = get_bits(reg_hop_channel, HOP_CHANNEL_CRC_ON_PAYLOAD_MASK, HOP_CHANNEL_CRC_ON_PAYLOAD_OFFSET) == 1;
 
         let irq_flags_bits = self.spi.read(IRQ_FLAGS).await? >> 4;
         let rx_packet_termination_ok = if crc_on_payload {
@@ -365,7 +364,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// See: datasheet section 4.1.1.6
     pub async fn set_header_mode(&mut self, mode: HeaderMode) -> Result<(), Sx127xError<SPI::Error>> {
         let mut byte = self.spi.read(MODEM_CONFIG_1).await?;
-        set_bits(&mut byte, mode as u8, MODEM_CONFIG_1_IMPLICIT_HEADER_MODE_ON_MASK, 0);
+        set_bits(&mut byte, mode as u8, MODEM_CONFIG_1_IMPLICIT_HEADER_MODE_ON_MASK, MODEM_CONFIG_1_IMPLICIT_HEADER_MODE_ON_OFFSET);
         self.spi.write(MODEM_CONFIG_1, byte).await
     }
 
@@ -381,11 +380,11 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// See: datasheet section 2.1.3.8
     pub async fn set_invert_iq(&mut self, invert_iq: InvertIQ) -> Result<(), Sx127xError<SPI::Error>> {
         let mut byte = self.spi.read(INVERT_IQ).await?;
-        set_bits(&mut byte, invert_iq.rx_path as u8, INVERT_IQ_RX_MASK, 6);
-        set_bits(&mut byte, invert_iq.tx_path as u8, INVERT_IQ_TX_MASK, 0);
+        set_bits(&mut byte, invert_iq.rx_path as u8, INVERT_IQ_RX_MASK, INVERT_IQ_RX_OFFSET);
+        set_bits(&mut byte, invert_iq.tx_path as u8, INVERT_IQ_TX_MASK, INVERT_IQ_TX_OFFSET);
 
         // optimize
-        self.spi.write(INVERT_IQ_2, if invert_iq.rx_path || invert_iq.tx_path { 0x19 } else { 0x1d }).await?;
+        self.spi.write(INVERT_IQ_2, if invert_iq.rx_path || invert_iq.tx_path { INVERT_IQ_2_ON } else { INVERT_IQ_2_OFF }).await?;
         self.spi.write(INVERT_IQ, byte).await
     }
 
@@ -490,7 +489,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// See: datasheet section 3
     pub async fn set_pll_bandwidth(&mut self, bandwidth: PLLBandwidth) -> Result<(), Sx127xError<SPI::Error>> {
         let mut byte = self.spi.read(PLL).await?;
-        set_bits(&mut byte, bandwidth as u8, PLL_PLL_BANDWIDTH, 6);
+        set_bits(&mut byte, bandwidth as u8, PLL_PLL_BANDWIDTH_MASK, PLL_PLL_BANDWIDTH_OFFSET);
         self.spi.write(PLL, byte).await
     }
 
@@ -520,11 +519,11 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
 
         if spreading_factor == SpreadingFactor::Sf6 {
             self.set_header_mode(HeaderMode::Implicit).await?;
-            detect_optimize |= 0x5;
-            self.spi.write(DETECTION_THRESHOLD, 0x0c).await?;
+            detect_optimize |= DETECT_OPTIMIZE_DETECTION_OPTIMIZE_SF6;
+            self.spi.write(DETECTION_THRESHOLD, DETECTION_THRESHOLD_SF6).await?;
         } else {
-            detect_optimize |= 0x3;
-            self.spi.write(DETECTION_THRESHOLD, 0x0a).await?;
+            detect_optimize |= DETECT_OPTIMIZE_DETECTION_OPTIMIZE_SF7_TO_SF12;
+            self.spi.write(DETECTION_THRESHOLD, DETECTION_THRESHOLD_SF7_TO_SF12).await?;
         }
         self.spi.write(DETECT_OPTIMIZE, detect_optimize).await
     }
@@ -547,8 +546,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
 
     /// Gets the spreading factor.
     pub async fn spreading_factor(&mut self) -> Result<SpreadingFactor, Sx127xError<SPI::Error>> {
-        let modem_config_2 = self.spi.read(MODEM_CONFIG_2).await?;
-        Ok(SpreadingFactor::from(get_bits(modem_config_2, MODEM_CONFIG_2_SPREADING_FACTOR_MASK, 4)))
+        Ok(SpreadingFactor::from(get_bits(self.spi.read(MODEM_CONFIG_2).await?, MODEM_CONFIG_2_SPREADING_FACTOR_MASK, MODEM_CONFIG_2_SPREADING_FACTOR_OFFSET)))
     }
 
     /// Calculates the symbol rate in chips/s.
@@ -572,7 +570,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         #[cfg(feature = "half_duplex")]
         {
             if device_mode == DeviceMode::RXSINGLE || device_mode == DeviceMode::RXCONTINUOUS {
-                return Err(Sx127xError::InvalidState)
+                return Err(InvalidState)
             }
             self.spi.write(FIFO_TX_BASE_ADDR, 0x00).await?;
         }
@@ -582,7 +580,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         }
 
         if device_mode == DeviceMode::TX {
-            return Err(Sx127xError::InvalidState)
+            return Err(InvalidState)
         }
 
         self.set_device_mode(DeviceMode::STDBY).await?;
@@ -618,9 +616,9 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
 
     // PRIVATE -------------------------------------------------------------------------------------
 
-    async fn set_dio_mapping(&mut self, register: u8, value: u8, mask: u8, left_shift: u8) -> Result<(), Sx127xError<SPI::Error>> {
+    async fn set_dio_mapping(&mut self, register: u8, value: u8, mask: u8, offset: u8) -> Result<(), Sx127xError<SPI::Error>> {
         let mut byte = self.spi.read(register).await?;
-        set_bits(&mut byte, value, mask, left_shift);
+        set_bits(&mut byte, value, mask, offset);
         self.spi.write(register, byte).await
     }
 
@@ -658,7 +656,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
 
     async fn optimize_rx_response_detect_optimize(&mut self, bandwidth: Bandwidth) -> Result<(), Sx127xError<SPI::Error>> {
         let mut detect_optimize = self.spi.read(DETECT_OPTIMIZE).await?;
-        set_bits(&mut detect_optimize, if bandwidth == Bandwidth::Bw500kHz { 1 } else { 0 }, DETECT_OPTIMIZE_DETECTION_OPTIMIZE_MASK, 7);
+        set_bits(&mut detect_optimize, if bandwidth == Bandwidth::Bw500kHz { 1 } else { 0 }, DETECT_OPTIMIZE_AUTOMATIC_IF_ON_MASK, DETECT_OPTIMIZE_AUTOMATIC_IF_ON_OFFSET);
         self.spi.write(DETECT_OPTIMIZE, detect_optimize).await
     }
 

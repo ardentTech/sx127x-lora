@@ -184,12 +184,8 @@ pub enum Interrupt {
     RxDone,
     RxTimeout,
 }
+
 impl Interrupt {
-
-    pub(crate) fn lsb_offset(&self) -> u8 {
-        self.mask() >> 1
-    }
-
     pub(crate) fn mask(&self) -> u8 {
         match self {
             Interrupt::CadDetected => registers::IRQ_FLAGS_CAD_DETECTED_MASK,
@@ -280,16 +276,6 @@ pub enum PLLBandwidth {
     Bw225kHz = 0x2,
     #[default]
     Bw300kHz = 0x3,
-}
-
-#[derive(Clone, Copy, PartialEq)]
-pub enum RxStatus {
-    ModemClear,
-    HeaderInfoValid,
-    RxOnGoing,
-    SignalSynchronized,
-    SignalDetected,
-    Unknown,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
