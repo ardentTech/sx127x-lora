@@ -71,7 +71,9 @@ pub const MODEM_CONFIG_2_SPREADING_FACTOR_MASK: u8 = 0xf0;
 pub const MODEM_CONFIG_2_SPREADING_FACTOR_OFFSET: u8 = 0x4;
 pub const MODEM_CONFIG_2_TX_CONTINUOUS_MODE_MASK: u8 = 0x08;
 pub const MODEM_CONFIG_2_RX_PAYLOAD_CRC_ON_MASK: u8 = 0x04;
+pub const MODEM_CONFIG_2_RX_PAYLOAD_CRC_ON_OFFSET: u8 = 0x2;
 pub const MODEM_CONFIG_2_SYMB_TIMEOUT_MASK: u8 = 0x03;
+pub const MODEM_CONFIG_2_SYMB_TIMEOUT_OFFSET: u8 = 0x0;
 
 // -------------------------------------------------------------------------------------------------
 pub const SYMB_TIMEOUT_LSB: u8 = 0x1f;
@@ -85,6 +87,7 @@ pub const FIFO_RX_BYTE_ADDR: u8 = 0x25;
 // RegModemConfig3 ---------------------------------------------------------------------------------
 pub const MODEM_CONFIG_3: u8 = 0x26;
 pub const MODEM_CONFIG_3_LOW_DATA_RATE_OPTIMIZE_MASK: u8 = 0x08;
+pub const MODEM_CONFIG_3_LOW_DATA_RATE_OPTIMIZE_OFFSET: u8 = 0x3;
 
 // -------------------------------------------------------------------------------------------------
 pub const FEI_MSB: u8 = 0x28;

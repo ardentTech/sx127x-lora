@@ -281,7 +281,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
             mode = DeviceMode::RXSINGLE;
 
             let mut modem_config_2 = self.spi.read(MODEM_CONFIG_2).await?;
-            set_bits(&mut modem_config_2, (timeout >> 8) as u8, MODEM_CONFIG_2_SYMB_TIMEOUT_MASK, 0);
+            set_bits(&mut modem_config_2, (timeout >> 8) as u8, MODEM_CONFIG_2_SYMB_TIMEOUT_MASK, MODEM_CONFIG_2_SYMB_TIMEOUT_OFFSET);
             self.spi.write(MODEM_CONFIG_2, modem_config_2).await?;
 
             self.spi.write(SYMB_TIMEOUT_LSB, (timeout & 0xff) as u8).await?;
@@ -314,7 +314,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// See: datasheet section 4.1.1.4
     pub async fn set_bandwidth(&mut self, bandwidth: Bandwidth) -> Result<(), Sx127xError<SPI::Error>> {
         let mut byte = self.spi.read(MODEM_CONFIG_1).await?;
-        set_bits(&mut byte, bandwidth as u8, MODEM_CONFIG_1_BW_MASK, 4);
+        set_bits(&mut byte, bandwidth as u8, MODEM_CONFIG_1_BW_MASK, MODEM_CONFIG_1_BW_OFFSET);
         self.spi.write(MODEM_CONFIG_1, byte).await?;
         self.optimize_bandwidth().await
     }
@@ -324,7 +324,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// See: datasheet section 4.1.1.3
     pub async fn set_coding_rate(&mut self, coding_rate: CodingRate) -> Result<(), Sx127xError<SPI::Error>> {
         let mut byte = self.spi.read(MODEM_CONFIG_1).await?;
-        set_bits(&mut byte, coding_rate as u8, MODEM_CONFIG_1_CODING_RATE_MASK, 1);
+        set_bits(&mut byte, coding_rate as u8, MODEM_CONFIG_1_CODING_RATE_MASK, MODEM_CONFIG_1_CODING_RATE_OFFSET);
         self.spi.write(MODEM_CONFIG_1, byte).await
     }
 
@@ -333,7 +333,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// See: section 4.1.1.6
     pub async fn set_crc(&mut self, on: bool) -> Result<(), Sx127xError<SPI::Error>> {
         let mut byte = self.spi.read(MODEM_CONFIG_2).await?;
-        set_bits(&mut byte, on as u8, MODEM_CONFIG_2_RX_PAYLOAD_CRC_ON_MASK, 2);
+        set_bits(&mut byte, on as u8, MODEM_CONFIG_2_RX_PAYLOAD_CRC_ON_MASK, MODEM_CONFIG_2_RX_PAYLOAD_CRC_ON_OFFSET);
         self.spi.write(MODEM_CONFIG_2, byte).await
     }
 
@@ -400,7 +400,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// See: datasheet page 110
     pub async fn set_lna_gain(&mut self, gain: LnaGain) -> Result<(), Sx127xError<SPI::Error>> {
         let mut byte = self.spi.read(LNA).await?;
-        set_bits(&mut byte, gain as u8, LNA_GAIN_MASK, 5);
+        set_bits(&mut byte, gain as u8, LNA_GAIN_MASK, LNA_GAIN_OFFSET);
         self.spi.write(LNA, byte).await
     }
 
@@ -410,7 +410,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// See: datasheet section 4.1.1.6
     pub async fn set_low_data_rate_optimize(&mut self, on: bool) -> Result<(), Sx127xError<SPI::Error>> {
         let mut byte = self.spi.read(MODEM_CONFIG_3).await?;
-        set_bits(&mut byte, on as u8, MODEM_CONFIG_3_LOW_DATA_RATE_OPTIMIZE_MASK, 3);
+        set_bits(&mut byte, on as u8, MODEM_CONFIG_3_LOW_DATA_RATE_OPTIMIZE_MASK, MODEM_CONFIG_3_LOW_DATA_RATE_OPTIMIZE_OFFSET);
         self.spi.write(MODEM_CONFIG_3, byte).await
     }
 
@@ -427,7 +427,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// See: datasheet section 3.4.4
     pub async fn set_ocp(&mut self, on: bool, imax: u8) -> Result<(), Sx127xError<SPI::Error>> {
         let trim = calculate::ocp_trim(imax);
-        self.spi.write(OCP, ((on as u8) << 5) | trim).await
+        self.spi.write(OCP, ((on as u8) << OCP_ON_OFFSET) | trim).await
     }
 
     /// Sets the power amplifier (PA) to PA_HP on the PA_BOOST pin.
@@ -443,9 +443,9 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         }
 
         let mut byte = self.spi.read(PA_CONFIG).await?;
-        set_bits(&mut byte, 1, PA_CONFIG_PA_SELECT_MASK, 7);
-        set_bits(&mut byte, 7, PA_CONFIG_MAX_POWER_MASK, 4);
-        set_bits(&mut byte, if power == 20 { power - 5 } else { power - 2 }, PA_CONFIG_OUTPUT_POWER_MASK, 0);
+        set_bits(&mut byte, 1, PA_CONFIG_PA_SELECT_MASK, PA_CONFIG_PA_SELECT_OFFSET);
+        set_bits(&mut byte, 7, PA_CONFIG_MAX_POWER_MASK, PA_CONFIG_MAX_POWER_OFFSET);
+        set_bits(&mut byte, if power == 20 { power - 5 } else { power - 2 }, PA_CONFIG_OUTPUT_POWER_MASK, PA_CONFIG_OUTPUT_POWER_OFFSET);
         self.spi.write(PA_CONFIG, byte).await?;
 
         self.spi.write(PA_DAC, if power == 20 { 0x87 } else { 0x84 }).await?;
@@ -471,13 +471,13 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         }
 
         let mut byte = self.spi.read(PA_CONFIG).await?;
-        set_bits(&mut byte, 0, PA_CONFIG_PA_SELECT_MASK, 7);
+        set_bits(&mut byte, 0, PA_CONFIG_PA_SELECT_MASK, PA_CONFIG_PA_SELECT_OFFSET);
         if (-4..=0).contains(&power) {
-            set_bits(&mut byte, 0, PA_CONFIG_MAX_POWER_MASK, 4);
-            set_bits(&mut byte, (power as f32 + 4.2) as u8, PA_CONFIG_OUTPUT_POWER_MASK, 0);
+            set_bits(&mut byte, 0, PA_CONFIG_MAX_POWER_MASK, PA_CONFIG_MAX_POWER_OFFSET);
+            set_bits(&mut byte, (power as f32 + 4.2) as u8, PA_CONFIG_OUTPUT_POWER_MASK, PA_CONFIG_OUTPUT_POWER_OFFSET);
         } else {
-            set_bits(&mut byte, 7, PA_CONFIG_MAX_POWER_MASK, 4);
-            set_bits(&mut byte, power as u8, PA_CONFIG_OUTPUT_POWER_MASK, 0);
+            set_bits(&mut byte, 7, PA_CONFIG_MAX_POWER_MASK, PA_CONFIG_MAX_POWER_OFFSET);
+            set_bits(&mut byte, power as u8, PA_CONFIG_OUTPUT_POWER_MASK, PA_CONFIG_OUTPUT_POWER_OFFSET);
         }
 
         self.spi.write(PA_DAC, 0x84).await?;
@@ -511,7 +511,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// See: datasheet section 4.1.1.2
     pub async fn set_spreading_factor(&mut self, spreading_factor: SpreadingFactor) -> Result<(), Sx127xError<SPI::Error>> {
         let mut modem_config_2 = self.spi.read(MODEM_CONFIG_2).await?;
-        set_bits(&mut modem_config_2, spreading_factor as u8, MODEM_CONFIG_2_SPREADING_FACTOR_MASK, 4);
+        set_bits(&mut modem_config_2, spreading_factor as u8, MODEM_CONFIG_2_SPREADING_FACTOR_MASK, MODEM_CONFIG_2_SPREADING_FACTOR_OFFSET);
         self.spi.write(MODEM_CONFIG_2, modem_config_2).await?;
 
         let mut detect_optimize = self.spi.read(DETECT_OPTIMIZE).await?;
