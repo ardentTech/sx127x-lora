@@ -23,6 +23,7 @@
 - [ ] `RegAgcThresh2`
 - [ ] `RegAgcThresh3`
 - [ ] low battery detector 0x3d (FSK mode req)
+- [ ] pa boost getter
 
 ### Examples
 

@@ -1144,7 +1144,7 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 [[package]]
 name = "sx127x-common"
 version = "0.2.0"
-source = "git+https://github.com/ardentTech/sx127x-common.git?rev=dc0c06e#dc0c06ebf641ca4e273ca15b5a26403d6e4f963a"
+source = "git+https://github.com/ardentTech/sx127x-common.git?rev=cf346c5#cf346c5c2b93d7948546ecfaa56a0eaefd3e4dc1"
 dependencies = [
  "embedded-hal-async",
  "maybe-async",

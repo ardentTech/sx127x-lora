@@ -1,6 +1,6 @@
 use sx127x_common::bits::get_bits;
-use sx127x_common::error::Sx127xError;
 use crate::registers;
+use crate::types::PARamp::*;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum Bandwidth {
@@ -267,6 +267,28 @@ pub enum PARamp {
     Us15 = 0xd,
     Us12 = 0xe,
     Us10 = 0xf,
+}
+impl From<u8> for PARamp {
+    fn from(value: u8) -> Self {
+        match value {
+            0x0 => Ms3_4,
+            0x1 => Ms2,
+            0x2 => Ms1,
+            0x3 => Us500,
+            0x4 => Us250,
+            0x5 => Us125,
+            0x6 => Us100,
+            0x7 => Us62,
+            0x8 => Us50,
+            0xa => Us31,
+            0xb => Us25,
+            0xc => Us20,
+            0xd => Us15,
+            0xe => Us12,
+            0xf => Us10,
+            _ => Us40,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]

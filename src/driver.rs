@@ -141,6 +141,13 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         self.spi.read(FIFO_RX_BYTE_ADDR).await
     }
 
+    /// Gets the rise/fall time of the power amplifier (PA).
+    ///
+    /// See: datasheet section 2.1.2.3
+    pub async fn pa_ramp(&mut self) -> Result<PARamp, Sx127xError<SPI::Error>> {
+        Ok(PARamp::from(get_bits(self.spi.read(PA_RAMP).await?, PA_RAMP_MASK, PA_RAMP_OFFSET)))
+    }
+
     /// Sets the DIO0 pin signal source.
     ///
     /// See: datasheet table 18
