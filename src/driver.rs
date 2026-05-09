@@ -215,6 +215,13 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         Ok(self.spi.read(PKT_SNR_VALUE).await? as i8 >> 2)
     }
 
+    /// Sets the gain and high frequency boost for the low noise receiver amplifier (LNA).
+    ///
+    /// See: datasheet page 110
+    pub async fn lna(&mut self) -> Result<Lna, Sx127xError<SPI::Error>> {
+        Ok(Lna::from(self.spi.read(LNA).await?))
+    }
+
     /// Masks an interrupt.
     ///
     /// See: datasheet section 4.1.2.4
@@ -279,13 +286,13 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         #[cfg(feature = "half_duplex")]
         {
             if device_mode == DeviceMode::RXSINGLE || device_mode == DeviceMode::RXCONTINUOUS || device_mode == DeviceMode::TX {
-                return Err(Sx127xError::InvalidState)
+                return Err(InvalidState)
             }
         }
         #[cfg(not(feature = "half_duplex"))]
         {
             if device_mode == DeviceMode::RXSINGLE || device_mode == DeviceMode::RXCONTINUOUS {
-                return Err(Sx127xError::InvalidState)
+                return Err(InvalidState)
             }
         }
 
@@ -413,12 +420,13 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         Ok(InvertIQ::from(self.spi.read(INVERT_IQ).await?))
     }
 
-    /// Sets the gain for the low noise receiver amplifier (LNA).
+    /// Sets the gain and high frequency boost for the low noise receiver amplifier (LNA).
     ///
     /// See: datasheet page 110
-    pub async fn set_lna_gain(&mut self, gain: LnaGain) -> Result<(), Sx127xError<SPI::Error>> {
+    pub async fn set_lna(&mut self, lna: Lna) -> Result<(), Sx127xError<SPI::Error>> {
         let mut byte = self.spi.read(LNA).await?;
-        set_bits(&mut byte, gain as u8, LNA_GAIN_MASK, LNA_GAIN_OFFSET);
+        set_bits(&mut byte, lna.boost_hf as u8, LNA_BOOST_HF_MASK, LNA_BOOST_HF_OFFSET);
+        set_bits(&mut byte, lna.gain as u8, LNA_GAIN_MASK, LNA_GAIN_OFFSET);
         self.spi.write(LNA, byte).await
     }
 

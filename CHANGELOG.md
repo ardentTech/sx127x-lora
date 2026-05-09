@@ -16,10 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `rx_coding_rate` getter
 - `pa_ramp` getter
 - `Ocp` struct, `ocp` getter
+- `Lna` struct and `lna` getter
 
 ### Changed
 
 - `set_invert_iq` parameter is `InvertIQ` struct instead of bools
+- `set_lna_gain` to `set_lna`
 
 ### Fixed
 

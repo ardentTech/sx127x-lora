@@ -1,4 +1,5 @@
 use sx127x_common::bits::get_bits;
+use sx127x_common::registers::{LNA_BOOST_HF_MASK, LNA_BOOST_HF_OFFSET, LNA_GAIN_MASK, LNA_GAIN_OFFSET};
 use crate::{calculate, registers};
 use crate::types::PARamp::*;
 
@@ -224,6 +225,42 @@ pub enum LnaGain {
     G5 = 0x5,
     G6 = 0x6
 }
+impl From<u8> for LnaGain {
+    fn from(value: u8) -> Self {
+        match value {
+            0x2 => LnaGain::G2,
+            0x3 => LnaGain::G3,
+            0x4 => LnaGain::G4,
+            0x5 => LnaGain::G5,
+            0x6 => LnaGain::G6,
+            _ => LnaGain::G1,
+        }
+    }
+}
+
+pub struct Lna {
+    pub boost_hf: bool,
+    pub gain: LnaGain,
+}
+impl Lna {
+    pub fn new(boost_hf: bool, gain: LnaGain) -> Self {
+        Self { boost_hf, gain }
+    }
+}
+impl Default for Lna {
+    fn default() -> Self {
+        Self { boost_hf: false, gain: LnaGain::default() }
+    }
+}
+impl From<u8> for Lna {
+    fn from(value: u8) -> Self {
+        Self {
+            boost_hf: get_bits(value, LNA_BOOST_HF_MASK, LNA_BOOST_HF_OFFSET) == 1,
+            gain: LnaGain::from(get_bits(value, LNA_GAIN_MASK, LNA_GAIN_OFFSET))
+        }
+    }
+}
+
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum ModemStatus {
