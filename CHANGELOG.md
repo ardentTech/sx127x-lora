@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `invert_iq` getter
 - `rx_coding_rate` getter
 - `pa_ramp` getter
+- `Ocp` struct, `ocp` getter
 
 ### Changed
 

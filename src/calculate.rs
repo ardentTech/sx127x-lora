@@ -18,6 +18,14 @@ pub(crate) fn ocp_trim(imax: u8) -> u8 {
     }
 }
 
+pub(crate) fn ocp_imax(trim: u8) -> u8 {
+    if trim <= 15 {
+        45 + (5 * trim)
+    } else if 15 < trim && trim <= 27 {
+        ((10u16 * trim as u16) - 30u16) as u8
+    } else { 240 }
+}
+
 pub(crate) fn symbol_rate(bandwidth: u32, spreading_factor: u32) -> u32 {
     bandwidth / 2u32.pow(spreading_factor)
 }
@@ -63,6 +71,36 @@ mod tests {
     fn ocp_trim_high_ok() {
         let res = ocp_trim(140);
         assert_eq!(res, 17);
+    }
+
+    #[test]
+    fn ocp_imax_0_ok() {
+        let res = ocp_imax(0);
+        assert_eq!(res, 45);
+    }
+
+    #[test]
+    fn ocp_imax_15_ok() {
+        let res = ocp_imax(15);
+        assert_eq!(res, 120);
+    }
+
+    #[test]
+    fn ocp_imax_16_ok() {
+        let res = ocp_imax(16);
+        assert_eq!(res, 130);
+    }
+
+    #[test]
+    fn ocp_imax_27_ok() {
+        let res = ocp_imax(27);
+        assert_eq!(res, 240);
+    }
+
+    #[test]
+    fn ocp_imax_28_ok() {
+        let res = ocp_imax(28);
+        assert_eq!(res, 240);
     }
 
     #[test]

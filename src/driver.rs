@@ -141,6 +141,17 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         self.spi.read(FIFO_RX_BYTE_ADDR).await
     }
 
+    /// Gets the over-current protection (OCP) on/off.
+    ///
+    /// See: datasheet section 3.4.4
+    pub async fn ocp(&mut self) -> Result<Ocp, Sx127xError<SPI::Error>> {
+        let byte = self.spi.read(OCP).await?;
+        Ok(Ocp::new(
+            get_bits(byte, OCP_ON_MASK, OCP_ON_OFFSET) == 1,
+            calculate::ocp_imax(get_bits(byte, OCP_TRIM_MASK, OCP_TRIM_OFFSET))
+        ))
+    }
+
     /// Gets the rise/fall time of the power amplifier (PA).
     ///
     /// See: datasheet section 2.1.2.3
@@ -432,9 +443,8 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// Sets the over-current protection (OCP) on/off.
     ///
     /// See: datasheet section 3.4.4
-    pub async fn set_ocp(&mut self, on: bool, imax: u8) -> Result<(), Sx127xError<SPI::Error>> {
-        let trim = calculate::ocp_trim(imax);
-        self.spi.write(OCP, ((on as u8) << OCP_ON_OFFSET) | trim).await
+    pub async fn set_ocp(&mut self, ocp: Ocp) -> Result<(), Sx127xError<SPI::Error>> {
+        self.spi.write(OCP, ((ocp.on as u8) << OCP_ON_OFFSET) | calculate::ocp_trim(ocp.imax)).await
     }
 
     /// Sets the power amplifier (PA) to PA_HP on the PA_BOOST pin.
@@ -456,7 +466,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         self.spi.write(PA_CONFIG, byte).await?;
 
         self.spi.write(PA_DAC, if power == 20 { 0x87 } else { 0x84 }).await?;
-        self.set_ocp(true, if power == 20 { 120 } else { 87 }).await
+        self.set_ocp(Ocp::new(true, if power == 20 { 120 } else { 87 })).await
     }
 
     /// Sets the rise/fall time of the power amplifier (PA).
@@ -488,7 +498,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         }
 
         self.spi.write(PA_DAC, 0x84).await?;
-        self.set_ocp(false, 0).await
+        self.set_ocp(Ocp::new(false, 0)).await
     }
 
     /// Sets the PLL bandwidth.

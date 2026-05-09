@@ -1,5 +1,5 @@
 use sx127x_common::bits::get_bits;
-use crate::registers;
+use crate::{calculate, registers};
 use crate::types::PARamp::*;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -245,6 +245,23 @@ impl TryFrom<u8> for ModemStatus {
             registers::MODEM_STAT_MODEM_STATUS_MODEM_CLEAR_MASK => Ok(ModemStatus::ModemClear),
             _ => Err(()),
         }
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Ocp {
+    pub on: bool,
+    pub imax: u8,
+}
+impl Ocp {
+    pub fn new(on: bool, imax: u8) -> Self {
+        Self { on, imax }
+    }
+}
+impl Default for Ocp {
+    fn default() -> Self {
+        // TODO should these go in common since reg, masks and offsets are in there?
+        Self { on: true, imax: 100 }
     }
 }
 
