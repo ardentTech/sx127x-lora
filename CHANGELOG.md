@@ -16,14 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Ocp` struct, `ocp` getter
 - `Lna` struct and `lna` getter
 - `hop_channel` getter
-- `PABoost` tuple struct
+- `PowerAmplifier` tuple struct
 
 ### Changed
 
 - `set_invert_iq` parameter is `InvertIQ` struct instead of bools
 - `set_lna_gain` to `set_lna`
 - set lf mode on/off when calling `set_frequency()`
-- `set_pa_boost` parameter type
+- `set_pa_boost` to `set_power_amplifier`
+- `set_pa_boost` parameter type from `u8` to `PowerAmplifier`
 
 ### Fixed
 

@@ -19,7 +19,7 @@
 - [ ] frequency hopping example
 - [x] `validate` module and remove `assert!` calls from driver
 - [ ] RegOpMode::AccessSharedReg
-- [ ] pa boost getter
+- [x] pa boost getter
 
 ### Examples
 

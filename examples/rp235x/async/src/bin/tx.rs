@@ -14,7 +14,7 @@ use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::mutex::Mutex;
 use {defmt_rtt as _, panic_probe as _};
 use sx127xlora::driver::{Sx127xLora, Sx127xLoraConfig};
-use sx127xlora::types::{Dio0Signal, Interrupt, SpreadingFactor};
+use sx127xlora::types::{Dio0Signal, Interrupt, PowerAmplifier, SpreadingFactor};
 
 const FREQUENCY_HZ: u32 = 915_000_000;
 
@@ -40,7 +40,7 @@ async fn main(_task_spawner: Spawner) {
     sx127x.set_temp_monitor(false).await.expect("disable temp monitor failed :(");
     // symbol duration (~33ms) is > 16ms so enable low data rate optimize
     sx127x.set_low_data_rate_optimize(true).await.expect("set_low_data_rate_optimize failed :(");
-    sx127x.set_pa_boost(20).await.expect("set_amplifier_boost failed :(");
+    sx127x.set_power_amplifier(PowerAmplifier::new(20).unwrap()).await.expect("set_amplifier_boost failed :(");
 
     sx127x.set_dio0(Dio0Signal::TxDone).await.expect("set_dio0 failed :(");
 

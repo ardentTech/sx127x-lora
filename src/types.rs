@@ -3,7 +3,7 @@ use sx127x_common::error::Sx127xError;
 use sx127x_common::registers::{LNA_BOOST_HF_MASK, LNA_BOOST_HF_OFFSET, LNA_GAIN_MASK, LNA_GAIN_OFFSET};
 use crate::registers;
 use crate::types::PARamp::*;
-use crate::validate::validate_pa_boost;
+use crate::validate::validate_pa_power;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum Bandwidth {
@@ -320,13 +320,20 @@ impl Default for Ocp {
     }
 }
 
-pub struct PABoost(pub(crate) u8);
-impl PABoost {
+pub struct PowerAmplifier(pub(crate) u8);
+impl PowerAmplifier {
+    /// Initializes a new PowerAmplifier.
+    ///
+    /// See: datasheet section 3.4.2
+    ///
+    /// Arguments:
+    ///
+    /// * `power`: 2 <= a <= 17 for continuous operation, or 20 for duty-cycled operation
     pub fn new(power: u8) -> Result<Self, Sx127xError<()>> {
-        if !validate_pa_boost(power) {
+        if !validate_pa_power(power) {
             return Err(Sx127xError::InvalidInput)
         }
-        Ok(PABoost(power))
+        Ok(PowerAmplifier(power))
     }
 }
 

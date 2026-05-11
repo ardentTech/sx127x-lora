@@ -10,7 +10,7 @@ use sx127x_common::spi::Sx127xSpi;
 use crate::registers::*;
 use crate::types::*;
 use crate::calculate;
-use crate::validate::{validate_pa_boost, validate_pa_rfo};
+use crate::validate::{validate_pa_power, validate_pa_rfo};
 
 #[cfg(feature = "half_duplex")]
 const PAYLOAD_SIZE: usize = 256;
@@ -472,19 +472,25 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// Sets the power amplifier (PA) to PA_HP on the PA_BOOST pin.
     ///
     /// See: datasheet section 3.4.2
-    ///
-    /// Arguments:
-    ///
-    /// * `power`: 2 <= a <= 17 for continuous operation, or 20 for duty-cycled operation
-    pub async fn set_pa_boost(&mut self, pa_boost: PABoost) -> Result<(), Sx127xError<SPI::Error>> {
+    pub async fn set_power_amplifier(&mut self, pa: PowerAmplifier) -> Result<(), Sx127xError<SPI::Error>> {
         let mut byte = self.spi.read(PA_CONFIG).await?;
         set_bits(&mut byte, 1, PA_CONFIG_PA_SELECT_MASK, PA_CONFIG_PA_SELECT_OFFSET);
         set_bits(&mut byte, 7, PA_CONFIG_MAX_POWER_MASK, PA_CONFIG_MAX_POWER_OFFSET);
-        set_bits(&mut byte, if pa_boost.0 == 20 { pa_boost.0 - 5 } else { pa_boost.0 - 2 }, PA_CONFIG_OUTPUT_POWER_MASK, PA_CONFIG_OUTPUT_POWER_OFFSET);
+        set_bits(&mut byte, if pa.0 == 20 { 15 } else { pa.0 - 2 }, PA_CONFIG_OUTPUT_POWER_MASK, PA_CONFIG_OUTPUT_POWER_OFFSET);
         self.spi.write(PA_CONFIG, byte).await?;
 
-        self.spi.write(PA_DAC, if pa_boost.0 == 20 { 0x87 } else { 0x84 }).await?;
-        self.set_ocp(Ocp::new(true, if pa_boost.0 == 20 { 120 } else { 87 })).await
+        self.spi.write(PA_DAC, if pa.0 == 20 { 0x87 } else { 0x84 }).await?;
+        self.set_ocp(Ocp::new(true, if pa.0 == 20 { 120 } else { 87 })).await
+    }
+
+    /// Gets the
+    pub async fn power_amplifier(&mut self) -> Result<PowerAmplifier, Sx127xError<SPI::Error>> {
+        if self.spi.read(PA_DAC).await? == 0x87 {
+            Ok(PowerAmplifier { 0: 20 })
+        } else {
+            let output_power = get_bits(self.spi.read(PA_CONFIG).await?, PA_CONFIG_OUTPUT_POWER_MASK, PA_CONFIG_OUTPUT_POWER_OFFSET);
+            Ok(PowerAmplifier { 0: output_power + 2 })
+        }
     }
 
     /// Sets the rise/fall time of the power amplifier (PA).
