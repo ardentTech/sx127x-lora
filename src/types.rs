@@ -1,8 +1,9 @@
 use sx127x_common::bits::get_bits;
+use sx127x_common::error::Sx127xError;
 use sx127x_common::registers::{LNA_BOOST_HF_MASK, LNA_BOOST_HF_OFFSET, LNA_GAIN_MASK, LNA_GAIN_OFFSET};
-use crate::{calculate, registers};
-use crate::registers::{HOP_CHANNEL_CRC_ON_PAYLOAD_MASK, HOP_CHANNEL_CRC_ON_PAYLOAD_OFFSET, HOP_CHANNEL_FHSS_PRESENT_CHANNEL_MASK, HOP_CHANNEL_FHSS_PRESENT_CHANNEL_OFFSET, HOP_CHANNEL_PLL_TIMEOUT_MASK, HOP_CHANNEL_PLL_TIMEOUT_OFFSET};
+use crate::registers;
 use crate::types::PARamp::*;
+use crate::validate::validate_pa_boost;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum Bandwidth {
@@ -184,9 +185,9 @@ pub struct HopChannel {
 impl From<u8> for HopChannel {
     fn from(value: u8) -> Self {
         Self {
-            pll_timeout: get_bits(value, HOP_CHANNEL_PLL_TIMEOUT_MASK, HOP_CHANNEL_PLL_TIMEOUT_OFFSET) == 1,
-            crc_on_payload: get_bits(value, HOP_CHANNEL_CRC_ON_PAYLOAD_MASK, HOP_CHANNEL_CRC_ON_PAYLOAD_OFFSET) == 1,
-            fhss_present_channel: get_bits(value, HOP_CHANNEL_FHSS_PRESENT_CHANNEL_MASK, HOP_CHANNEL_FHSS_PRESENT_CHANNEL_OFFSET)
+            pll_timeout: get_bits(value, registers::HOP_CHANNEL_PLL_TIMEOUT_MASK, registers::HOP_CHANNEL_PLL_TIMEOUT_OFFSET) == 1,
+            crc_on_payload: get_bits(value, registers::HOP_CHANNEL_CRC_ON_PAYLOAD_MASK, registers::HOP_CHANNEL_CRC_ON_PAYLOAD_OFFSET) == 1,
+            fhss_present_channel: get_bits(value, registers::HOP_CHANNEL_FHSS_PRESENT_CHANNEL_MASK, registers::HOP_CHANNEL_FHSS_PRESENT_CHANNEL_OFFSET)
         }
     }
 }
@@ -316,6 +317,16 @@ impl Default for Ocp {
     fn default() -> Self {
         // TODO should these go in common since reg, masks and offsets are in there?
         Self { on: true, imax: 100 }
+    }
+}
+
+pub struct PABoost(pub(crate) u8);
+impl PABoost {
+    pub fn new(power: u8) -> Result<Self, Sx127xError<()>> {
+        if !validate_pa_boost(power) {
+            return Err(Sx127xError::InvalidInput)
+        }
+        Ok(PABoost(power))
     }
 }
 

@@ -18,11 +18,7 @@
 - [x] LowFrequencyModeOn bit of `RegOpMode`
 - [ ] frequency hopping example
 - [x] `validate` module and remove `assert!` calls from driver
-- [ ] `RegAgcRef`
-- [ ] `RegAgcThresh1`
-- [ ] `RegAgcThresh2`
-- [ ] `RegAgcThresh3`
-- [ ] low battery detector 0x3d (FSK mode req)
+- [ ] RegOpMode::AccessSharedReg
 - [ ] pa boost getter
 
 ### Examples

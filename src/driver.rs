@@ -236,7 +236,7 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         Ok(self.spi.read(PKT_SNR_VALUE).await? as i8 >> 2)
     }
 
-    /// Sets the gain and high frequency boost for the low noise receiver amplifier (LNA).
+    /// Gets the gain and high frequency boost for the low noise receiver amplifier (LNA).
     ///
     /// See: datasheet page 110
     pub async fn lna(&mut self) -> Result<Lna, Sx127xError<SPI::Error>> {
@@ -476,19 +476,15 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// Arguments:
     ///
     /// * `power`: 2 <= a <= 17 for continuous operation, or 20 for duty-cycled operation
-    pub async fn set_pa_boost(&mut self, power: u8) -> Result<(), Sx127xError<SPI::Error>> {
-        if !validate_pa_boost(power) {
-            return Err(Sx127xError::InvalidInput)
-        }
-
+    pub async fn set_pa_boost(&mut self, pa_boost: PABoost) -> Result<(), Sx127xError<SPI::Error>> {
         let mut byte = self.spi.read(PA_CONFIG).await?;
         set_bits(&mut byte, 1, PA_CONFIG_PA_SELECT_MASK, PA_CONFIG_PA_SELECT_OFFSET);
         set_bits(&mut byte, 7, PA_CONFIG_MAX_POWER_MASK, PA_CONFIG_MAX_POWER_OFFSET);
-        set_bits(&mut byte, if power == 20 { power - 5 } else { power - 2 }, PA_CONFIG_OUTPUT_POWER_MASK, PA_CONFIG_OUTPUT_POWER_OFFSET);
+        set_bits(&mut byte, if pa_boost.0 == 20 { pa_boost.0 - 5 } else { pa_boost.0 - 2 }, PA_CONFIG_OUTPUT_POWER_MASK, PA_CONFIG_OUTPUT_POWER_OFFSET);
         self.spi.write(PA_CONFIG, byte).await?;
 
-        self.spi.write(PA_DAC, if power == 20 { 0x87 } else { 0x84 }).await?;
-        self.set_ocp(Ocp::new(true, if power == 20 { 120 } else { 87 })).await
+        self.spi.write(PA_DAC, if pa_boost.0 == 20 { 0x87 } else { 0x84 }).await?;
+        self.set_ocp(Ocp::new(true, if pa_boost.0 == 20 { 120 } else { 87 })).await
     }
 
     /// Sets the rise/fall time of the power amplifier (PA).

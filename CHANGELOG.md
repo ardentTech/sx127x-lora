@@ -7,8 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.1] - 2026-04-23
-
 ### Added
 
 - `set_pll_bandwidth` method
@@ -18,12 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Ocp` struct, `ocp` getter
 - `Lna` struct and `lna` getter
 - `hop_channel` getter
+- `PABoost` tuple struct
 
 ### Changed
 
 - `set_invert_iq` parameter is `InvertIQ` struct instead of bools
 - `set_lna_gain` to `set_lna`
 - set lf mode on/off when calling `set_frequency()`
+- `set_pa_boost` parameter type
 
 ### Fixed
 
@@ -36,6 +36,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `DEFAULT_FREQUENCY_HZ` constant
 - `assert!` from driver
 - unused `RxStatus` enum
+
+## [0.1.1] - 2026-04-23
+
+### Fixed
+
+- crate import errors in examples after unexpected rename for 0.1.0
 
 ## [0.1.0] - 2026-04-22
 
