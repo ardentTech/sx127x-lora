@@ -20,6 +20,8 @@ const PAYLOAD_SIZE: usize = 128;
 const PRODUCTION_VERSION: u8 = 0x12;
 pub const RX_TIMEOUT_MIN_SYMBOLS: u16 = 4;
 pub const RX_TIMEOUT_MAX_SYMBOLS: u16 = 1023;
+const LF_MAX_HZ: u32 = 525_000_000;
+const HF_MIN_HZ: u32 = 779_000_000;
 
 pub struct Sx127xLoraConfig {
     pub bandwidth: Bandwidth,
@@ -388,6 +390,11 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         self.spi.write(FRF_MID, (frf >> 8) as u8).await?;
         self.spi.write(FRF_LSB, frf as u8).await?;
 
+        if hz < LF_MAX_HZ {
+            self.set_low_frequency_mode(true).await?;
+        } else if hz > HF_MIN_HZ {
+            self.set_low_frequency_mode(false).await?;
+        }
         self.calibrate().await
     }
 
@@ -725,5 +732,11 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
             frequency -= offset as u32;
         }
         self.set_frequency(frequency).await
+    }
+
+    async fn set_low_frequency_mode(&mut self, on: bool) -> Result<(), Sx127xError<SPI::Error>> {
+        let mut byte = self.spi.read(OP_MODE).await?;
+        set_bits(&mut byte, on as u8, OP_MODE_LOW_FREQUENCY_MODE_ON_MASK, OP_MODE_LOW_FREQUENCY_MODE_ON_OFFSET);
+        self.spi.write(OP_MODE, byte).await
     }
 }

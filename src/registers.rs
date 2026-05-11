@@ -3,8 +3,9 @@ pub use sx127x_common::registers::*;
 // RegOpMode ---------------------------------------------------------------------------------------
 pub const OP_MODE_LONG_RANGE_MODE_MASK: u8 = 0x80;
 pub const OP_MODE_LONG_RANGE_MODE_OFFSET: u8 = 0x7;
-//pub const OP_MODE_ACCESS_SHARED_REG_MASK: u8 = 0x40;
-//pub const OP_MODE_LOW_FREQUENCY_MODE_ON_MASK: u8 = 0x08;
+pub const OP_MODE_ACCESS_SHARED_REG_MASK: u8 = 0x40;
+pub const OP_MODE_LOW_FREQUENCY_MODE_ON_MASK: u8 = 0x08;
+pub const OP_MODE_LOW_FREQUENCY_MODE_ON_OFFSET: u8 = 0x03;
 pub const OP_MODE_MODE_MASK: u8 = 0x07;
 pub const OP_MODE_MODE_OFFSET: u8 = 0x0;
 

@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `set_invert_iq` parameter is `InvertIQ` struct instead of bools
 - `set_lna_gain` to `set_lna`
+- set lf mode on/off when calling `set_frequency()`
 
 ### Fixed
 

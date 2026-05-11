@@ -15,7 +15,7 @@
 
 ### TODO
 
-- [ ] LowFrequencyModeOn bit of `RegOpMode`
+- [x] LowFrequencyModeOn bit of `RegOpMode`
 - [ ] frequency hopping example
 - [x] `validate` module and remove `assert!` calls from driver
 - [ ] `RegAgcRef`
