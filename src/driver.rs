@@ -10,7 +10,7 @@ use sx127x_common::spi::Sx127xSpi;
 use crate::registers::*;
 use crate::types::*;
 use crate::calculate;
-use crate::validate::{validate_pa_power, validate_pa_rfo};
+use crate::validate::validate_pa_rfo;
 
 #[cfg(feature = "half_duplex")]
 const PAYLOAD_SIZE: usize = 256;
@@ -502,23 +502,15 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// Sets the power amplifier (PA) to PA_HF on the RFO_HF pin or PA_LF on the RFO_LF pin.
     ///
     /// See: datasheet section 3.4.2
-    ///
-    /// Arguments:
-    ///
-    /// * `power`: -4 <= a <= 15
-    pub async fn set_pa_rfo(&mut self, power: i8) -> Result<(), Sx127xError<SPI::Error>> {
-        if !validate_pa_rfo(power) {
-            return Err(Sx127xError::InvalidInput)
-        }
-
+    pub async fn set_pa_rfo(&mut self, pa_rfo: PARFO) -> Result<(), Sx127xError<SPI::Error>> {
         let mut byte = self.spi.read(PA_CONFIG).await?;
         set_bits(&mut byte, 0, PA_CONFIG_PA_SELECT_MASK, PA_CONFIG_PA_SELECT_OFFSET);
-        if (-4..=0).contains(&power) {
+        if (-4..=0).contains(&pa_rfo.0) {
             set_bits(&mut byte, 0, PA_CONFIG_MAX_POWER_MASK, PA_CONFIG_MAX_POWER_OFFSET);
-            set_bits(&mut byte, (power as f32 + 4.2) as u8, PA_CONFIG_OUTPUT_POWER_MASK, PA_CONFIG_OUTPUT_POWER_OFFSET);
+            set_bits(&mut byte, (pa_rfo.0 as f32 + 4.2) as u8, PA_CONFIG_OUTPUT_POWER_MASK, PA_CONFIG_OUTPUT_POWER_OFFSET);
         } else {
             set_bits(&mut byte, 7, PA_CONFIG_MAX_POWER_MASK, PA_CONFIG_MAX_POWER_OFFSET);
-            set_bits(&mut byte, power as u8, PA_CONFIG_OUTPUT_POWER_MASK, PA_CONFIG_OUTPUT_POWER_OFFSET);
+            set_bits(&mut byte, pa_rfo.0 as u8, PA_CONFIG_OUTPUT_POWER_MASK, PA_CONFIG_OUTPUT_POWER_OFFSET);
         }
 
         self.spi.write(PA_DAC, 0x84).await?;

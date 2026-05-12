@@ -3,7 +3,7 @@ use sx127x_common::error::Sx127xError;
 use sx127x_common::registers::{LNA_BOOST_HF_MASK, LNA_BOOST_HF_OFFSET, LNA_GAIN_MASK, LNA_GAIN_OFFSET};
 use crate::registers;
 use crate::types::PARamp::*;
-use crate::validate::validate_pa_power;
+use crate::validate::{validate_pa_power, validate_pa_rfo};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum Bandwidth {
@@ -29,9 +29,9 @@ impl From<u8> for Bandwidth {
             0x4 => Bandwidth::Bw31_25kHz,
             0x5 => Bandwidth::Bw41_7kHz,
             0x6 => Bandwidth::Bw62_5kHz,
-            0x7 => Bandwidth::Bw125kHz,
             0x8 => Bandwidth::Bw250kHz,
-            _ => Bandwidth::Bw500kHz,
+            0x9 => Bandwidth::Bw500kHz,
+            _ => Bandwidth::Bw125kHz,
         }
     }
 }
@@ -56,6 +56,7 @@ impl Bandwidth {
     }
 }
 
+// -------------------------------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum CodingRate {
     #[default]
@@ -67,10 +68,10 @@ pub enum CodingRate {
 impl From<u8> for CodingRate {
     fn from(value: u8) -> Self {
         match value {
-            0x1 => CodingRate::Cr4_5,
             0x2 => CodingRate::Cr4_6,
             0x3 => CodingRate::Cr4_7,
-            _ => CodingRate::Cr4_8,
+            0x4 => CodingRate::Cr4_8,
+            _ => CodingRate::Cr4_5,
         }
     }
 }
@@ -85,9 +86,11 @@ impl Into<f32> for CodingRate {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+// -------------------------------------------------------------------------------------------------
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum DeviceMode {
     SLEEP = 0x0,
+    #[default]
     STDBY = 0x1,
     FSTX = 0x2,
     TX = 0x3,
@@ -100,17 +103,18 @@ impl From<u8> for DeviceMode {
     fn from(value: u8) -> Self {
         match value {
             0x0 => DeviceMode::SLEEP,
-            0x1 => DeviceMode::STDBY,
             0x2 => DeviceMode::FSTX,
             0x3 => DeviceMode::TX,
             0x4 => DeviceMode::FSRX,
             0x5 => DeviceMode::RXCONTINUOUS,
             0x6 => DeviceMode::RXSINGLE,
-            _ => DeviceMode::CAD,
+            0x7 => DeviceMode::CAD,
+            _ => DeviceMode::STDBY,
         }
     }
 }
 
+// -------------------------------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum Dio0Signal {
     #[default]
@@ -161,6 +165,7 @@ pub enum Dio5Signal {
     None = 0x3,
 }
 
+// -------------------------------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum HeaderMode {
     #[default]
@@ -176,6 +181,7 @@ impl From<u8> for HeaderMode {
     }
 }
 
+// -------------------------------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
 pub struct HopChannel {
     pll_timeout: bool,
@@ -192,6 +198,7 @@ impl From<u8> for HopChannel {
     }
 }
 
+// -------------------------------------------------------------------------------------------------
 #[derive(Clone, Copy, PartialEq)]
 pub enum Interrupt {
     CadDetected,
@@ -219,6 +226,7 @@ impl Interrupt {
     }
 }
 
+// -------------------------------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
 pub struct InvertIQ {
     pub rx_path: bool,
@@ -233,6 +241,7 @@ impl From<u8> for InvertIQ {
     }
 }
 
+// -------------------------------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum LnaGain {
     #[default]
@@ -279,7 +288,7 @@ impl From<u8> for Lna {
     }
 }
 
-
+// -------------------------------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum ModemStatus {
     SignalDetected,
@@ -289,20 +298,19 @@ pub enum ModemStatus {
     #[default]
     ModemClear,
 }
-impl TryFrom<u8> for ModemStatus {
-    type Error = ();
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
+impl From<u8> for ModemStatus {
+    fn from(value: u8) -> Self {
         match value {
-            registers::MODEM_STAT_MODEM_STATUS_SIGNAL_DETECTED => Ok(ModemStatus::SignalDetected),
-            registers::MODEM_STAT_MODEM_STATUS_SIGNAL_SYNCHRONIZED => Ok(ModemStatus::SignalSynchronized),
-            registers::MODEM_STAT_MODEM_STATUS_RX_ONGOING_MASK => Ok(ModemStatus::RxOnGoing),
-            registers::MODEM_STAT_MODEM_STATUS_HEADER_INFO_VALID_MASK => Ok(ModemStatus::HeaderInfoValid),
-            registers::MODEM_STAT_MODEM_STATUS_MODEM_CLEAR_MASK => Ok(ModemStatus::ModemClear),
-            _ => Err(()),
+            registers::MODEM_STAT_MODEM_STATUS_SIGNAL_DETECTED => ModemStatus::SignalDetected,
+            registers::MODEM_STAT_MODEM_STATUS_SIGNAL_SYNCHRONIZED => ModemStatus::SignalSynchronized,
+            registers::MODEM_STAT_MODEM_STATUS_RX_ONGOING_MASK => ModemStatus::RxOnGoing,
+            registers::MODEM_STAT_MODEM_STATUS_HEADER_INFO_VALID_MASK => ModemStatus::HeaderInfoValid,
+            _ => ModemStatus::ModemClear,
         }
     }
 }
 
+// -------------------------------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug)]
 pub struct Ocp {
     pub on: bool,
@@ -320,15 +328,9 @@ impl Default for Ocp {
     }
 }
 
+// -------------------------------------------------------------------------------------------------
 pub struct PowerAmplifier(pub(crate) u8);
 impl PowerAmplifier {
-    /// Initializes a new PowerAmplifier.
-    ///
-    /// See: datasheet section 3.4.2
-    ///
-    /// Arguments:
-    ///
-    /// * `power`: 2 <= a <= 17 for continuous operation, or 20 for duty-cycled operation
     pub fn new(power: u8) -> Result<Self, Sx127xError<()>> {
         if !validate_pa_power(power) {
             return Err(Sx127xError::InvalidInput)
@@ -380,6 +382,18 @@ impl From<u8> for PARamp {
     }
 }
 
+pub struct PARFO(pub(crate) i8);
+
+impl PARFO {
+    pub fn new(power: i8) -> Result<Self, Sx127xError<()>> {
+        if !validate_pa_rfo(power) {
+            return Err(Sx127xError::InvalidInput)
+        }
+        Ok(PARFO(power))
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum PLLBandwidth {
     Bw75kHz = 0x0,
@@ -389,6 +403,7 @@ pub enum PLLBandwidth {
     Bw300kHz = 0x3,
 }
 
+// -------------------------------------------------------------------------------------------------
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum SpreadingFactor {
     /// Only implicit header mode is possible with Sf6.
@@ -405,12 +420,12 @@ impl From<u8> for SpreadingFactor {
     fn from(value: u8) -> Self {
         match value {
             0x6 => SpreadingFactor::Sf6,
-            0x7 => SpreadingFactor::Sf7,
             0x8 => SpreadingFactor::Sf8,
             0x9 => SpreadingFactor::Sf9,
             0xa => SpreadingFactor::Sf10,
             0xb => SpreadingFactor::Sf11,
-            _ => SpreadingFactor::Sf12,
+            0xc => SpreadingFactor::Sf12,
+            _ => SpreadingFactor::Sf7,
         }
     }
 }

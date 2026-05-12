@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Lna` struct and `lna` getter
 - `hop_channel` getter
 - `PowerAmplifier` tuple struct
+- `PARFO` tuple struct
 
 ### Changed
 
@@ -25,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - set lf mode on/off when calling `set_frequency()`
 - `set_pa_boost` to `set_power_amplifier`
 - `set_pa_boost` parameter type from `u8` to `PowerAmplifier`
+- `set_pa_rfo` parameter type forom `i8` to `PARFO`
 
 ### Fixed
 
