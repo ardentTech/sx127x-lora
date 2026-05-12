@@ -25,7 +25,7 @@ async fn main(_task_spawner: Spawner) {
     let mosi = p.PIN_11;
     let sck = p.PIN_10;
     let cs = Output::new(p.PIN_13, Level::High);
-    let mut led = Output::new(p.PIN_20, Level::Low);
+    let mut led = Output::new(p.PIN_21, Level::Low);
 
     let spi = Spi::new(p.SPI1, sck, mosi, miso, p.DMA_CH0, p.DMA_CH1, Config::default());
     let spi_bus: Mutex<NoopRawMutex, Spi<SPI1, Async>> = Mutex::new(spi);

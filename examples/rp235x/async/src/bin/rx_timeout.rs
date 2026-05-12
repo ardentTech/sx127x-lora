@@ -30,7 +30,7 @@ async fn main(_task_spawner: Spawner) {
     let spi_bus: Mutex<NoopRawMutex, Spi<SPI1, Async>> = Mutex::new(spi);
     let spi_dev = SpiDevice::new(&spi_bus, cs);
 
-    let mut dio1 = Input::new(p.PIN_14, Pull::Down);
+    let mut dio1 = Input::new(p.PIN_16, Pull::Down);
 
     let mut config = Sx127xLoraConfig::default();
     config.frequency = FREQUENCY_HZ;
