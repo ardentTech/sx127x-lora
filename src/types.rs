@@ -2,7 +2,8 @@ use sx127x_common::bits::get_bits;
 use sx127x_common::error::Sx127xError;
 use crate::registers;
 use crate::types::PARamp::*;
-use crate::validate::{validate_pa_power, validate_pa_rfo};
+use crate::validate;
+use crate::validate::{RX_TIMEOUT_SYMBOLS_MAX, RX_TIMEOUT_SYMBOLS_MIN};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum Bandwidth {
@@ -332,7 +333,7 @@ impl Default for Ocp {
 pub struct PowerAmplifier(pub(crate) u8);
 impl PowerAmplifier {
     pub fn new(power: u8) -> Result<Self, Sx127xError<()>> {
-        if !validate_pa_power(power) {
+        if !validate::pa_power(power) {
             return Err(Sx127xError::InvalidInput)
         }
         Ok(PowerAmplifier(power))
@@ -386,7 +387,7 @@ pub struct PARFO(pub(crate) i8);
 
 impl PARFO {
     pub fn new(power: i8) -> Result<Self, Sx127xError<()>> {
-        if !validate_pa_rfo(power) {
+        if !validate::pa_rfo(power) {
             return Err(Sx127xError::InvalidInput)
         }
         Ok(PARFO(power))
@@ -401,6 +402,17 @@ pub enum PLLBandwidth {
     Bw225kHz = 0x2,
     #[default]
     Bw300kHz = 0x3,
+}
+
+// -------------------------------------------------------------------------------------------------
+pub struct PreambleLength(pub(crate) u16);
+impl PreambleLength {
+    pub fn new(length: u16) -> Result<Self, Sx127xError<()>> {
+        if !validate::preamble_length(length) {
+            return Err(Sx127xError::InvalidInput)
+        }
+        Ok(PreambleLength(length))
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -427,5 +439,25 @@ impl From<u8> for SpreadingFactor {
             0xc => SpreadingFactor::Sf12,
             _ => SpreadingFactor::Sf7,
         }
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
+pub struct TimeoutSymbols(pub(crate) u16);
+
+impl TimeoutSymbols {
+    pub fn new(timeout: u16) -> Result<Self, Sx127xError<()>> {
+        if !validate::rx_timeout_symbols(timeout) {
+            return Err(Sx127xError::InvalidInput)
+        }
+        Ok(TimeoutSymbols(timeout))
+    }
+
+    pub fn max() -> Self {
+        TimeoutSymbols(RX_TIMEOUT_SYMBOLS_MAX)
+    }
+
+    pub fn min() -> Self {
+        TimeoutSymbols(RX_TIMEOUT_SYMBOLS_MIN)
     }
 }

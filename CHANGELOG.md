@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `PowerAmplifier` tuple struct
 - `PARFO` tuple struct
 - error check of received payload length compared to buffer size
+- `PreambleLength` and `TimeoutSymbols` types
 
 ### Changed
 

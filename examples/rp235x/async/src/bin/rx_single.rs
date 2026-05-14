@@ -14,8 +14,8 @@ use embassy_rp::spi::{Async, Config, Spi};
 use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::mutex::Mutex;
 use {defmt_rtt as _, panic_probe as _};
-use sx127xlora::driver::{Sx127xLora, Sx127xLoraConfig, RX_TIMEOUT_MAX_SYMBOLS};
-use sx127xlora::types::{Dio0Signal, Dio1Signal, IRQ};
+use sx127xlora::driver::{Sx127xLora, Sx127xLoraConfig};
+use sx127xlora::types::{Dio0Signal, Dio1Signal, TimeoutSymbols, IRQ};
 
 const FREQUENCY_HZ: u32 = 915_000_000;
 
@@ -50,7 +50,7 @@ async fn main(spawner: Spawner) {
 
     spawner.spawn(dio1_task(Input::new(p.PIN_16, Pull::Down))).unwrap();
 
-    sx127x.receive(Some(RX_TIMEOUT_MAX_SYMBOLS)).await.unwrap();
+    sx127x.receive(Some(TimeoutSymbols::max())).await.unwrap();
 
     loop {
         info!("waiting for RxDone...");

@@ -17,8 +17,6 @@ const PAYLOAD_SIZE: usize = 256;
 const PAYLOAD_SIZE: usize = 128;
 // identifies silicon Version 1b, which applies to errata
 const PRODUCTION_VERSION: u8 = 0x12;
-pub const RX_TIMEOUT_MIN_SYMBOLS: u16 = 4;
-pub const RX_TIMEOUT_MAX_SYMBOLS: u16 = 1023;
 const LF_MAX_HZ: u32 = 525_000_000;
 const HF_MIN_HZ: u32 = 779_000_000;
 
@@ -302,7 +300,7 @@ impl<SPI: SpiDevice> Sx127xLora<SPI> {
     /// enter RXSINGLE mode, else RXCONTINUOUS mode.
     ///
     /// See: datasheet pages 40-42
-    pub async fn receive(&mut self, timeout: Option<u16>) -> Result<(), Sx127xError<SPI::Error>> {
+    pub async fn receive(&mut self, timeout: Option<TimeoutSymbols>) -> Result<(), Sx127xError<SPI::Error>> {
         let device_mode = self.device_mode().await?;
         #[cfg(feature = "half_duplex")]
         {
@@ -321,16 +319,13 @@ impl<SPI: SpiDevice> Sx127xLora<SPI> {
         let mut mode = DeviceMode::RXCONTINUOUS;
 
         if let Some(timeout) = timeout {
-            if timeout < RX_TIMEOUT_MIN_SYMBOLS || timeout > RX_TIMEOUT_MAX_SYMBOLS {
-                return Err(Sx127xError::InvalidSymbolTimeout)
-            }
             mode = DeviceMode::RXSINGLE;
 
             let mut modem_config_2 = self.spi.read(MODEM_CONFIG_2).await?;
-            set_bits(&mut modem_config_2, (timeout >> 8) as u8, MODEM_CONFIG_2_SYMB_TIMEOUT_MASK, MODEM_CONFIG_2_SYMB_TIMEOUT_OFFSET);
+            set_bits(&mut modem_config_2, (timeout.0 >> 8) as u8, MODEM_CONFIG_2_SYMB_TIMEOUT_MASK, MODEM_CONFIG_2_SYMB_TIMEOUT_OFFSET);
             self.spi.write(MODEM_CONFIG_2, modem_config_2).await?;
 
-            self.spi.write(SYMB_TIMEOUT_LSB, (timeout & 0xff) as u8).await?;
+            self.spi.write(SYMB_TIMEOUT_LSB, (timeout.0 & 0xff) as u8).await?;
         }
 
         self.spi.write(FIFO_RX_BASE_ADDR, 0x00).await?;
@@ -543,12 +538,9 @@ impl<SPI: SpiDevice> Sx127xLora<SPI> {
     /// will yield a total of 65539 symbols.
     ///
     /// See: datasheet section 4.1.1.6
-    pub async fn set_preamble_length(&mut self, length: u16) -> Result<(), Sx127xError<SPI::Error>> {
-        if length < 6 {
-            return Err(Sx127xError::InvalidPreambleLength)
-        }
-        self.spi.write(PREAMBLE_MSB, (length >> 8) as u8).await?;
-        self.spi.write(PREAMBLE_LSB, (length & 0xff) as u8).await
+    pub async fn set_preamble_length(&mut self, preamble_length: PreambleLength) -> Result<(), Sx127xError<SPI::Error>> {
+        self.spi.write(PREAMBLE_MSB, (preamble_length.0 >> 8) as u8).await?;
+        self.spi.write(PREAMBLE_LSB, (preamble_length.0 & 0xff) as u8).await
     }
 
     /// Sets the spreading factor.
