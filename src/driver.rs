@@ -1,5 +1,5 @@
 #[cfg(feature = "defmt")]
-use defmt::debug;
+use defmt::error;
 
 use embedded_hal_async::spi::SpiDevice;
 pub use sx127x_common::error::Sx127xError;
@@ -10,7 +10,6 @@ use sx127x_common::spi::Sx127xSpi;
 use crate::registers::*;
 use crate::types::*;
 use crate::calculate;
-use crate::validate::validate_pa_rfo;
 
 #[cfg(feature = "half_duplex")]
 const PAYLOAD_SIZE: usize = 256;
@@ -44,7 +43,7 @@ impl Default for Sx127xLoraConfig {
 pub struct Sx127xLora<SPI> {
     pub spi: Sx127xSpi<SPI>
 }
-impl <SPI: SpiDevice> Sx127xLora<SPI> {
+impl<SPI: SpiDevice> Sx127xLora<SPI> {
     pub async fn new(spi: SPI, config: Sx127xLoraConfig) -> Result<Sx127xLora<SPI>, Sx127xError<SPI::Error>> {
         let mut driver = Self { spi: Sx127xSpi::new(spi) };
 
@@ -74,10 +73,10 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         self.spi.write(IMAGE_CAL, image_cal).await
     }
 
-    /// Clears an interrupt.
-    pub async fn clear_interrupt(&mut self, interrupt: Interrupt) -> Result<(), Sx127xError<SPI::Error>> {
+    /// Clears an irq.
+    pub async fn clear_irq(&mut self, irq: IRQ) -> Result<(), Sx127xError<SPI::Error>> {
         let byte = self.spi.read(IRQ_FLAGS).await?;
-        self.spi.write(IRQ_FLAGS, byte | interrupt.mask()).await
+        self.spi.write(IRQ_FLAGS, byte | irq.mask()).await
     }
 
     /// Gets the cyclic error coding rate.
@@ -141,6 +140,11 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
     /// See: datasheet section 4.1.1.6
     pub async fn hop_channel(&mut self) -> Result<HopChannel, Sx127xError<SPI::Error>> {
         Ok(HopChannel::from(self.spi.read(HOP_CHANNEL).await?))
+    }
+
+    /// Gets an irq flag.
+    pub async fn irq_flag(&mut self, irq: IRQ) -> Result<bool, Sx127xError<SPI::Error>> {
+        Ok(self.spi.read(IRQ_FLAGS).await? & irq.mask() == 1)
     }
 
     /// Gets the RX data buffer pointer.
@@ -243,12 +247,12 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         Ok(Lna::from(self.spi.read(LNA).await?))
     }
 
-    /// Masks an interrupt.
+    /// Masks an irq.
     ///
     /// See: datasheet section 4.1.2.4
-    pub async fn mask_interrupt(&mut self, interrupt: Interrupt) -> Result<(), Sx127xError<SPI::Error>> {
+    pub async fn mask_irq(&mut self, irq: IRQ) -> Result<(), Sx127xError<SPI::Error>> {
         let byte = self.spi.read(IRQ_FLAGS_MASK).await?;
-        self.spi.write(IRQ_FLAGS_MASK, byte | interrupt.mask()).await
+        self.spi.write(IRQ_FLAGS_MASK, byte | irq.mask()).await
     }
 
     /// Gets the modem status.
@@ -277,11 +281,19 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
 
         let rx_fifo_addr = self.spi.read(FIFO_RX_CURRENT_ADDR).await?;
         self.spi.write(FIFO_ADDR_PTR, rx_fifo_addr).await?;
+
         let num_bytes = self.spi.read(RX_NB_BYTES).await?;
+        if num_bytes > PAYLOAD_SIZE as u8 {
+            #[cfg(feature = "defmt")]
+            error!("received {} bytes but buffer size is only {} bytes", num_bytes, PAYLOAD_SIZE);
+
+            return Err(Sx127xError::InvalidPayloadLength)
+        }
+
         let mut buffer = [0; PAYLOAD_SIZE];
-        for i in 0..num_bytes {
+        for i in 0..PAYLOAD_SIZE {
             let byte = self.spi.read(FIFO).await?;
-            buffer[i as usize] = byte;
+            buffer[i] = byte;
         }
         Ok(buffer)
     }
@@ -625,12 +637,12 @@ impl <SPI: SpiDevice> Sx127xLora<SPI> {
         self.set_device_mode(DeviceMode::TX).await
     }
 
-    /// Unmasks an interrupt.
+    /// Unmasks an irq.
     ///
     /// See: datasheet section 4.1.2.4
-    pub async fn unmask_interrupt(&mut self, interrupt: Interrupt) -> Result<(), Sx127xError<SPI::Error>> {
+    pub async fn unmask_irq(&mut self, irq: IRQ) -> Result<(), Sx127xError<SPI::Error>> {
         let byte = self.spi.read(IRQ_FLAGS_MASK).await?;
-        self.spi.write(IRQ_FLAGS_MASK, byte & !interrupt.mask()).await
+        self.spi.write(IRQ_FLAGS_MASK, byte & !irq.mask()).await
     }
 
     /// Gets the number of valid headers received since last transition into Rx mode.

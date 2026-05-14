@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `hop_channel` getter
 - `PowerAmplifier` tuple struct
 - `PARFO` tuple struct
+- error check of received payload length compared to buffer size
 
 ### Changed
 
@@ -27,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `set_pa_boost` to `set_power_amplifier`
 - `set_pa_boost` parameter type from `u8` to `PowerAmplifier`
 - `set_pa_rfo` parameter type forom `i8` to `PARFO`
+- rename `Interrupt` to `IRQ` for type and driver methods
 
 ### Fixed
 

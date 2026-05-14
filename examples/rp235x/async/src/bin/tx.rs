@@ -1,4 +1,4 @@
-//! This async example shows how to use the LoRa modem to transmit a packet and then respond to the
+//! This example shows how to use the LoRa modem to transmit a packet and then respond to the
 //! TxDone interrupt on DIO0 once triggered. The high spread factor (SF) results in a low bit rate,
 //! so there is no explicit timer delay in this example.
 #![no_std]
@@ -14,7 +14,7 @@ use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::mutex::Mutex;
 use {defmt_rtt as _, panic_probe as _};
 use sx127xlora::driver::{Sx127xLora, Sx127xLoraConfig};
-use sx127xlora::types::{Dio0Signal, Interrupt, PowerAmplifier, SpreadingFactor};
+use sx127xlora::types::{Dio0Signal, IRQ, PowerAmplifier, SpreadingFactor};
 
 const FREQUENCY_HZ: u32 = 915_000_000;
 
@@ -36,21 +36,22 @@ async fn main(_task_spawner: Spawner) {
     let mut config = Sx127xLoraConfig::default();
     config.frequency = FREQUENCY_HZ;
     config.spreading_factor = SpreadingFactor::Sf12;
-    let mut sx127x = Sx127xLora::new(spi_dev, config).await.expect("driver init failed :(");
-    sx127x.set_temp_monitor(false).await.expect("disable temp monitor failed :(");
+    let mut sx127x = Sx127xLora::new(spi_dev, config).await.unwrap();
+    sx127x.set_temp_monitor(false).await.unwrap();
     // symbol duration (~33ms) is > 16ms so enable low data rate optimize
-    sx127x.set_low_data_rate_optimize(true).await.expect("set_low_data_rate_optimize failed :(");
-    sx127x.set_power_amplifier(PowerAmplifier::new(20).unwrap()).await.expect("set_amplifier_boost failed :(");
+    sx127x.set_low_data_rate_optimize(true).await.unwrap();
+    sx127x.set_power_amplifier(PowerAmplifier::new(20).unwrap()).await.unwrap();
 
-    sx127x.set_dio0(Dio0Signal::TxDone).await.expect("set_dio0 failed :(");
+    sx127x.set_dio0(Dio0Signal::TxDone).await.unwrap();
 
     loop {
-        sx127x.transmit("howdy".as_bytes()).await.expect("transmit failed :(");
+        sx127x.transmit("howdy".as_bytes()).await.unwrap();
+
         info!("waiting for TxDone...");
         dio0.wait_for_high().await;
-
         info!("TxDone triggered!");
+
         led.toggle();
-        sx127x.clear_interrupt(Interrupt::TxDone).await.expect("clear interrupt TxDone failed :(");
+        sx127x.clear_irq(IRQ::TxDone).await.unwrap();
     }
 }

@@ -1,11 +1,11 @@
-//! This async example demonstrates how to use the LoRa modem in RXSINGLE mode with a timeout. The
+//! This example demonstrates how to use the LoRa modem in RXSINGLE mode with a timeout. The
 //! RxDone interrupt on DIO0 is wired to pin 15, and the RxTimeout interrupt on DIO1 is wired to pin
 //! 14. You will need a second dual_modem chip in range and with the same settings to handle tx before
 //! the timeout.
 #![no_std]
 #![no_main]
 
-use defmt::{error, info, panic};
+use defmt::{error, info};
 use embassy_embedded_hal::shared_bus::asynch::spi::SpiDevice;
 use embassy_executor::Spawner;
 use embassy_rp::gpio::{Input, Level, Output, Pull};
@@ -15,7 +15,7 @@ use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::mutex::Mutex;
 use {defmt_rtt as _, panic_probe as _};
 use sx127xlora::driver::{Sx127xLora, Sx127xLoraConfig, RX_TIMEOUT_MAX_SYMBOLS};
-use sx127xlora::types::{Dio0Signal, Dio1Signal, Interrupt};
+use sx127xlora::types::{Dio0Signal, Dio1Signal, IRQ};
 
 const FREQUENCY_HZ: u32 = 915_000_000;
 
@@ -23,7 +23,7 @@ const FREQUENCY_HZ: u32 = 915_000_000;
 async fn dio1_task(mut dio1: Input<'static>) {
     loop {
         dio1.wait_for_high().await;
-        panic!("RxTimeout triggered :(");
+        error!("RxTimeout triggered :(");
     }
 }
 
@@ -43,20 +43,20 @@ async fn main(spawner: Spawner) {
 
     let mut config = Sx127xLoraConfig::default();
     config.frequency = FREQUENCY_HZ;
-    let mut sx127x = Sx127xLora::new(spi_dev, config).await.expect("driver init failed :(");
+    let mut sx127x = Sx127xLora::new(spi_dev, config).await.unwrap();
 
-    sx127x.set_dio0(Dio0Signal::RxDone).await.expect("enable_dio0 failed :(");
-    sx127x.set_dio1(Dio1Signal::RxTimeout).await.expect("enable_dio1 failed :(");
+    sx127x.set_dio0(Dio0Signal::RxDone).await.unwrap();
+    sx127x.set_dio1(Dio1Signal::RxTimeout).await.unwrap();
 
-    spawner.spawn(dio1_task(Input::new(p.PIN_14, Pull::Down))).unwrap();
+    spawner.spawn(dio1_task(Input::new(p.PIN_16, Pull::Down))).unwrap();
 
-    sx127x.receive(Some(RX_TIMEOUT_MAX_SYMBOLS)).await.expect("receive failed :(");
+    sx127x.receive(Some(RX_TIMEOUT_MAX_SYMBOLS)).await.unwrap();
 
     loop {
         info!("waiting for RxDone...");
         dio0.wait_for_high().await;
         info!("RxDone triggered!");
-        sx127x.clear_interrupt(Interrupt::RxDone).await.expect("clear interrupt RxDone failed :(");
+        sx127x.clear_irq(IRQ::RxDone).await.unwrap();
         match sx127x.read_rx_data().await {
             Ok(buf) => {
                 let len: usize = buf.iter().filter(|c| **c != 0).count();

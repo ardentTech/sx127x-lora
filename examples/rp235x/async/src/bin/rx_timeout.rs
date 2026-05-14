@@ -1,4 +1,4 @@
-//! This async example demonstrates the RxTimeout interrupt being triggered on DIO1 when a packet
+//! This example demonstrates the RxTimeout interrupt being triggered on DIO1 when a packet
 //! doesn't arrive before the user-defined timeout (in symbols).
 #![no_std]
 #![no_main]
@@ -14,7 +14,7 @@ use embassy_sync::mutex::Mutex;
 use embassy_time::Timer;
 use {defmt_rtt as _, panic_probe as _};
 use sx127xlora::driver::{Sx127xLora, Sx127xLoraConfig, RX_TIMEOUT_MIN_SYMBOLS};
-use sx127xlora::types::{Dio1Signal, Interrupt};
+use sx127xlora::types::{Dio1Signal, IRQ};
 
 const FREQUENCY_HZ: u32 = 915_000_000;
 
@@ -34,17 +34,18 @@ async fn main(_task_spawner: Spawner) {
 
     let mut config = Sx127xLoraConfig::default();
     config.frequency = FREQUENCY_HZ;
-    let mut sx127x = Sx127xLora::new(spi_dev, config).await.expect("driver init failed :(");
+    let mut sx127x = Sx127xLora::new(spi_dev, config).await.unwrap();
 
-    sx127x.set_dio1(Dio1Signal::RxTimeout).await.expect("enable_dio1 failed");
+    sx127x.set_dio1(Dio1Signal::RxTimeout).await.unwrap();
 
     loop {
-        sx127x.receive(Some(RX_TIMEOUT_MIN_SYMBOLS)).await.expect("receive init failed :(");
-        info!("waiting for timeout...");
+        sx127x.receive(Some(RX_TIMEOUT_MIN_SYMBOLS)).await.unwrap();
+
+        info!("waiting for RxTimeout...");
         dio1.wait_for_high().await;
         info!("RxTimeout triggered!");
-        sx127x.clear_interrupt(Interrupt::RxTimeout).await.expect("clear interrupt RxTimeout failed :(");
+
+        sx127x.clear_irq(IRQ::RxTimeout).await.unwrap();
         Timer::after(embassy_time::Duration::from_millis(3_000)).await;
-        info!("looping around");
     }
 }

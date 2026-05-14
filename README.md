@@ -11,7 +11,14 @@
 ### Roadmap
 
 - [ ] async (in-progress)
+- [ ] async rp235x examples (in-progress)
 - [ ] sync
+- [ ] sync rp235x examples
+
+### Examples
+
+* [RP235x async](https://github.com/ardentTech/sx127x-lora/tree/main/examples/rp235x/async)
+* RP235x sync: TODO
 
 ### TODO
 
@@ -20,10 +27,7 @@
 - [x] `validate` module and remove `assert!` calls from driver
 - [ ] RegOpMode::AccessSharedReg
 - [x] pa boost getter
-
-### Examples
-
-* [LoRa RP235x async](https://github.com/ardentTech/sx127x-lora/tree/main/examples/rp235x/async)
+- [x] Cad example
 
 ### Resources
 

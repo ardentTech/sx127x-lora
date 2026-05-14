@@ -1,6 +1,5 @@
 use sx127x_common::bits::get_bits;
 use sx127x_common::error::Sx127xError;
-use sx127x_common::registers::{LNA_BOOST_HF_MASK, LNA_BOOST_HF_OFFSET, LNA_GAIN_MASK, LNA_GAIN_OFFSET};
 use crate::registers;
 use crate::types::PARamp::*;
 use crate::validate::{validate_pa_power, validate_pa_rfo};
@@ -200,7 +199,7 @@ impl From<u8> for HopChannel {
 
 // -------------------------------------------------------------------------------------------------
 #[derive(Clone, Copy, PartialEq)]
-pub enum Interrupt {
+pub enum IRQ {
     CadDetected,
     FhssChangeChannel,
     CadDone,
@@ -211,17 +210,17 @@ pub enum Interrupt {
     RxTimeout,
 }
 
-impl Interrupt {
+impl IRQ {
     pub(crate) fn mask(&self) -> u8 {
         match self {
-            Interrupt::CadDetected => registers::IRQ_FLAGS_CAD_DETECTED_MASK,
-            Interrupt::FhssChangeChannel => registers::IRQ_FLAGS_FHSS_CHANGE_CHANNEL_MASK,
-            Interrupt::CadDone => registers::IRQ_FLAGS_CAD_DONE_MASK,
-            Interrupt::TxDone => registers::IRQ_FLAGS_TX_DONE_MASK,
-            Interrupt::ValidHeader => registers::IRQ_FLAGS_VALID_HEADER_MASK,
-            Interrupt::PayloadCrcError => registers::IRQ_FLAGS_PAYLOAD_CRC_ERROR_MASK,
-            Interrupt::RxDone => registers::IRQ_FLAGS_RX_DONE_MASK,
-            Interrupt::RxTimeout => registers::IRQ_FLAGS_RX_TIMEOUT_MASK,
+            IRQ::CadDetected => registers::IRQ_FLAGS_CAD_DETECTED_MASK,
+            IRQ::FhssChangeChannel => registers::IRQ_FLAGS_FHSS_CHANGE_CHANNEL_MASK,
+            IRQ::CadDone => registers::IRQ_FLAGS_CAD_DONE_MASK,
+            IRQ::TxDone => registers::IRQ_FLAGS_TX_DONE_MASK,
+            IRQ::ValidHeader => registers::IRQ_FLAGS_VALID_HEADER_MASK,
+            IRQ::PayloadCrcError => registers::IRQ_FLAGS_PAYLOAD_CRC_ERROR_MASK,
+            IRQ::RxDone => registers::IRQ_FLAGS_RX_DONE_MASK,
+            IRQ::RxTimeout => registers::IRQ_FLAGS_RX_TIMEOUT_MASK,
         }
     }
 }
@@ -282,8 +281,8 @@ impl Default for Lna {
 impl From<u8> for Lna {
     fn from(value: u8) -> Self {
         Self {
-            boost_hf: get_bits(value, LNA_BOOST_HF_MASK, LNA_BOOST_HF_OFFSET) == 1,
-            gain: LnaGain::from(get_bits(value, LNA_GAIN_MASK, LNA_GAIN_OFFSET))
+            boost_hf: get_bits(value, registers::LNA_BOOST_HF_MASK, registers::LNA_BOOST_HF_OFFSET) == 1,
+            gain: LnaGain::from(get_bits(value, registers::LNA_GAIN_MASK, registers::LNA_GAIN_OFFSET))
         }
     }
 }
@@ -329,6 +328,7 @@ impl Default for Ocp {
 }
 
 // -------------------------------------------------------------------------------------------------
+// TODO min/max getters?
 pub struct PowerAmplifier(pub(crate) u8);
 impl PowerAmplifier {
     pub fn new(power: u8) -> Result<Self, Sx127xError<()>> {
