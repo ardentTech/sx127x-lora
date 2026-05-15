@@ -21,6 +21,13 @@ panic-probe = { version = "1.0.0", features = ["print-defmt"] }
 # Enable generation of debug symbols even on release builds
 debug = true
 
+[lib]
+name = "common"
+path = "src/lib.rs"
+test = false
+doctest = false
+bench = false
+
 [[bin]]
 name = "cad"
 path = "src/bin/cad.rs"

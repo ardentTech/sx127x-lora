@@ -13,13 +13,12 @@ use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::mutex::Mutex;
 use embassy_time::Timer;
 use {defmt_rtt as _, panic_probe as _};
+use common::{heartbeat, LORA_FREQUENCY_HZ};
 use sx127xlora::driver::{Sx127xLora, Sx127xLoraConfig};
 use sx127xlora::types::{Dio1Signal, TimeoutSymbols, IRQ};
 
-const FREQUENCY_HZ: u32 = 915_000_000;
-
 #[embassy_executor::main]
-async fn main(_task_spawner: Spawner) {
+async fn main(spawner: Spawner) {
     let p = embassy_rp::init(Default::default());
     let miso = p.PIN_12;
     let mosi = p.PIN_11;
@@ -33,10 +32,11 @@ async fn main(_task_spawner: Spawner) {
     let mut dio1 = Input::new(p.PIN_16, Pull::Down);
 
     let mut config = Sx127xLoraConfig::default();
-    config.frequency = FREQUENCY_HZ;
+    config.frequency = LORA_FREQUENCY_HZ;
     let mut sx127x = Sx127xLora::new(spi_dev, config).await.unwrap();
 
     sx127x.set_dio1(Dio1Signal::RxTimeout).await.unwrap();
+    spawner.spawn(heartbeat(Output::new(p.PIN_21, Level::Low))).unwrap();
 
     loop {
         sx127x.receive(Some(TimeoutSymbols::min())).await.unwrap();

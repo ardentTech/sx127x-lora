@@ -19,18 +19,7 @@ use embassy_time::Timer;
 use {defmt_rtt as _, panic_probe as _};
 use sx127xlora::driver::{Sx127xLora, Sx127xLoraConfig};
 use sx127xlora::types::{DeviceMode, Dio3Signal, IRQ};
-
-const FREQUENCY_HZ: u32 = 915_000_000;
-
-#[embassy_executor::task]
-async fn heartbeat(mut pin: Output<'static>) {
-    loop {
-        pin.set_high();
-        Timer::after(embassy_time::Duration::from_millis(250)).await;
-        pin.set_low();
-        Timer::after(embassy_time::Duration::from_millis(750)).await;
-    }
-}
+use common::{heartbeat, LORA_FREQUENCY_HZ};
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
@@ -47,7 +36,7 @@ async fn main(spawner: Spawner) {
     let mut dio3 = Input::new(p.PIN_18, Pull::Down);
 
     let mut config = Sx127xLoraConfig::default();
-    config.frequency = FREQUENCY_HZ;
+    config.frequency = LORA_FREQUENCY_HZ;
     let mut sx127x = Sx127xLora::new(spi_dev, config).await.unwrap();
 
     sx127x.set_dio3(Dio3Signal::CadDone).await.unwrap();
